@@ -97,7 +97,10 @@ if vigname is not None:
 	print('Vignetting function will be used.')
 	vigtab = fits.getdata(vigname)
 	vig_theta = vigtab['THETA'][0]
-	vig_vig = vigtab['VIGNET'][0][0]
+	if len(np.shape(vigtab['VIGNET'][0])) == 2:
+		vig_vig = vigtab['VIGNET'][0]
+	elif len(np.shape(vigtab['VIGNET'][0])) == 3:
+		vig_vig = vigtab['VIGNET'][0][0]
 	vig_elo = vigtab['ENERG_LO'][0]
 	vig_ehi = vigtab['ENERG_HI'][0]
 	vig_emed = (vig_elo + vig_ehi) / 2.
