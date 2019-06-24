@@ -9,7 +9,7 @@ martexpmap
 
 ## Installation
 
-$ pip install --user git+https://github.com/CTJChen/msfc_artxc.git
+$ pip install --user git+https://github.com/CTJChen/martxc
 
 
 ## msfc_artxc uses the following python packages:
