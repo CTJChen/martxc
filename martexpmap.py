@@ -78,6 +78,9 @@ parser.add_argument('--attres', type=float, required=False,
 	help='Time resolution in seconds. The input attitude file can be rebinned or interpolated at the supplied time resolution.\
 	Re-binning/interpolating can speed up or slow down the computation time significantly.')
 
+parser.add_argument('--time', type=float, required=False,
+	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
+
 args = parser.parse_args()
 
 print(args)
@@ -88,6 +91,7 @@ rasize = args.rasize
 decsize = args.decsize
 energy = args.energy
 attres = args.attres
+timelim = args.time
 fov = args.fov
 fovdeg = fov / 60.
 
@@ -188,6 +192,10 @@ decs_1d = decs.flatten()
 
 atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
                 (atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
+
+if timelim is not None:
+	atttab = atttab[atttab['TIME'] <= atttab['TIME'][0] + timelim]
+
 atttime = atttab['TIME']
 attra = atttab['RA']
 attdec = atttab['DEC']
