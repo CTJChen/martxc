@@ -1,4 +1,4 @@
-# msfc_artxc
+# martxc
 msfc_artxc is a collection of data analysis and reduction tools for the X-ray telescope
 ART-XC.
 
@@ -12,10 +12,11 @@ martexpmap
 $ pip install --user git+https://github.com/CTJChen/martxc
 
 
-## msfc_artxc uses the following python packages:
+## martxc uses the following python packages:
 
 * numpy, scipy, astropy
-* astropy tdqm 
+* astropy
 * argparse
+* tdqm 
 
 
