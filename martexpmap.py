@@ -112,12 +112,26 @@ parser.add_argument('-attres', type=float, required=False,
 parser.add_argument('-time', type=float, required=False,
 	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
 
-parser.add_argument('-verbose', type=bool, required=False, default=True
+parser.add_argument('-verbose', type=bool, required=False, default=True,
 	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
+
+
+
 
 args = parser.parse_args()
 
-verb = args.verbose
+verbose = args.verbose
+
+if verbose:
+    def vprint(*args):
+        # Print each argument separately so caller doesn't need to
+        # stuff everything to be printed into a single string
+        for arg in args:
+           print(arg)
+else:   
+    vprint = lambda *a: None      # do-nothing function
+
+
 attname = args.attname
 vigname = args.vigname
 imgname = args.imgname
@@ -130,9 +144,9 @@ timelim = args.time
 fov = args.fov
 fovdeg = fov / 60.
 
-if verb:
-	print('arguments passed:\n')
-	print(args)
+if verbose:
+	vprint('arguments passed:')
+	vprint(args)
 
 
 # Read attitude file 
@@ -142,8 +156,8 @@ atttab = fits.getdata(attname)
 # Get the vignetting function at the designated energy --
 # only if a vignetting file name is provided
 if vigname is not None:
-	if verb:print('Vignetting function will be used.')
-	vigtab = fits.getdata(vigname)
+	vprint('Vignetting function will be used.\n')
+	vigtab = fits.getdata(vigname)		
 	vig_theta = vigtab['THETA'][0]
 	if len(np.shape(vigtab['VIGNET'][0])) == 2:
 		vig_vig = vigtab['VIGNET'][0]
@@ -152,6 +166,8 @@ if vigname is not None:
 	vig_elo = vigtab['ENERG_LO'][0]
 	vig_ehi = vigtab['ENERG_HI'][0]
 	vig_emed = (vig_elo + vig_ehi) / 2.
+	if energy is None:
+		energy = vig_emed[0]
 	# interpolate the vignetting function at the input energy
 	grid_e, grid_th = np.meshgrid(np.array([energy]), vig_theta)
 	points = np.transpose(
@@ -160,7 +176,6 @@ if vigname is not None:
 	                       )
 	values = vig_vig.flatten()
 	int_vig = gd(points, values, (grid_e, grid_th), method='nearest').flatten()
-
 	vigfunc = interp1d(vig_theta*60., int_vig)
 
 	def vig2d(ra, dec, pnt):
@@ -179,7 +194,7 @@ if vigname is not None:
 		vigout = vigfunc(dist)
 		return vigout
 else:
-	if verb:print('Vignetting function NOT found, calculate a raw exposure map.')
+	vprint('Vignetting function NOT found, calculate a raw exposure map.')
 
 
 
@@ -197,11 +212,11 @@ if imgname is not None:
 	npixdec = hdr['NAXIS2']
 	rasize = hdr['CDELT1'] * 3600.
 	decsize = hdr['CDELT2'] * 3600.
-	ra1 = hdr['CRVAL1'] - rasize * (hdr['CRPIX1'] - 1)
-	ra2 = hdr['CRVAL1'] + rasize * (ranpix - hdr['CRPIX1'])
-	dec1 = hdr['CRVAL2'] - rasize * (hdr['CRPIX2'] - 1)
-	dec2 = hdr['CRVAL2'] + rasize * (decnpix - hdr['CRPIX2'])
-	w = WCS(hdr)
+	ra1 = hdr['CRVAL1'] - hdr['CDELT1'] * (hdr['CRPIX1'] - 1)
+	ra2 = hdr['CRVAL1'] + hdr['CDELT1'] * (npixra - hdr['CRPIX1'])
+	dec1 = hdr['CRVAL2'] - hdr['CDELT2'] * (hdr['CRPIX2'] - 1)
+	dec2 = hdr['CRVAL2'] + hdr['CDELT2'] * (npixdec - hdr['CRPIX2'])
+	w = wcs.WCS(hdr)
 	header_out = w.to_header()
 elif (len(args.box) == 4) | (len(args.box) == 0):
 	if len(args.box) == 4:
@@ -221,8 +236,12 @@ elif (len(args.box) == 4) | (len(args.box) == 0):
 	w.wcs.crval = [np.median(newattra), np.median(newattdec)]
 	w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
 	header_out = w.to_header()
-else len(args.box) != 4:
+else:
 	parser.error('Must provide four radec values (e.g., python test_args.py -box ra1 ra2 dec1 dec2)')
+
+vprint('ra = [' +  str(np.round(ra1,4)) + ', ' + str(np.round(ra2,4)) + ']')
+vprint('dec = [' +  str(np.round(dec1,4)) + ', ' + str(np.round(dec2,4)) + ']')
+vprint('radecsize = [' +  str(np.round(rasize,2)) + ', ' + str(np.round(decsize,2)) + '] (arcsec)')
 
 # work only with attitude entries within the area of interests
 atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
@@ -238,9 +257,9 @@ if attres is None:
     Assuming the time steps in the attitude file is a constant
     '''
     attres = atttime[1] - atttime[0]
-    print('no attres parameter given, no attitude rebinning would be carried out')
+    vprint('no attres parameter given, no attitude rebinning would be carried out')
 else:
-	print('re-bininng the attitude file using the new time step')
+	vprint('re-bininng the attitude file using the new time step')
 newatttime, newattra, newattdec = rebinatt(atttime, attra, attdec, attres)
 del(atttime, attra, attdec)
 
@@ -267,13 +286,13 @@ The following tasks were done within this loop:
 '''
 
 if vigname is None:
-    print('Raw exposure map (not corrected for Vignetting effects)')
+    vprint('Raw exposure map (not corrected for Vignetting effects)')
     for aid in tqdm(range(len(newattra))):
         pnt = np.array([newattra[aid],newattdec[aid]])
         ix = tree.query_ball_point(pnt, fovdeg)
         expmap[ix] += attres
 else:
-    print('Vignetted exposure map')
+    vprint('Vignetted exposure map')
     for aid in tqdm(range(len(newattra))):
         pnt = np.array([newattra[aid],newattdec[aid]])
         ix = tree.query_ball_point(pnt, fovdeg)
@@ -281,6 +300,6 @@ else:
 
 # header is an astropy.io.fits.Header object.  We can use it to create a new
 # PrimaryHDU and write it to a file.
-hdu = fits.PrimaryHDU(expmap.reshape(npixra,npixdec), header=header)
+hdu = fits.PrimaryHDU(expmap.reshape(npixra,npixdec), header=header_out)
 # Save to FITS file
 hdu.writeto(outname, overwrite=True)
