@@ -97,7 +97,7 @@ parser.add_argument('-rasize', type=float, required=False, default=30.,
 parser.add_argument('-decsize', type=float, required=False, default=30.,
 	help='DEC pixel size in arcsec.')
 
-parser.add_argument('-box', '-arg', nargs='+', type=float, default=[],
+parser.add_argument('-box', nargs='+', type=float, default=[],
 	help="""list of ra dec values specifying the 4 corners of the box.
 	Example: -box ra1 ra2 dec1 dec2""")
 
