@@ -56,6 +56,9 @@ parser.add_argument(
 	help="""list of ra dec values specifying the 4 corners of the box.
 	Example: -box ra1 ra2 dec1 dec2""")
 
+parser.add_argument('-verbose', type=bool, required=False, default=True,
+	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
+
 #
 #parser.add_argument(
 #	'-energy', nargs='+', type=float, default=[],
