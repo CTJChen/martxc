@@ -127,7 +127,7 @@ ras_1d = ras.flatten()
 decs_1d = decs.flatten()
 
 h = plt.hist2d(
-	np.asrray(evttab['RA']),
+	np.asarray(evttab['RA']),
 	np.asarray(evttab['DEC']), bins=[npixra, npixdec])
 
 hdu = fits.PrimaryHDU(h[0], header=header_out)
