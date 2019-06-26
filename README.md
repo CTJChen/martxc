@@ -24,5 +24,5 @@ python setup.py install
 * numpy, scipy, astropy
 
 ## License
-The repository is developed by Chien-Ting Chen (C) 2019- at the NASA [MSFC X-ray group](https://wwwastro.msfc.nasa.gov/).
+The is a free, open-source software under AGPLv3.0 license. martxc is developed and maintained by Chien-Ting Chen at the NASA [MSFC X-ray group](https://wwwastro.msfc.nasa.gov/).
 
