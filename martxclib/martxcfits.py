@@ -1,6 +1,3 @@
-"""
-Functions for MSFC ART-XC
-"""
 from __future__ import print_function, division
 import numpy as np
 
@@ -34,16 +31,3 @@ def rebinatt(atttime, attra, attdec, attres):
 			newattdec[decid * k:(decid + 1) * k] = \
 			np.linspace(attdec[decid], attdec[decid + 1], k)
 		return newatttime, newattra, newattdec
-
-
-def verboseprint(verbose):
-	if verbose:
-		def vprint(*args):
-			# Print each argument separately so caller doesn't need to
-			# stuff everything to be printed into a single string
-			for arg in args:
-				print(arg)
-	else:
-		def vprint(*args):
-			None
-	return vprint

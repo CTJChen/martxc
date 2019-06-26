@@ -12,7 +12,7 @@ import astropy.io.fits as fits
 import argparse
 import matplotlib.pyplot as plt
 from astropy import wcs
-from martxcfits import verboseprint
+from martxclib.martxcfun import *
 
 
 class HelpfulParser(argparse.ArgumentParser):

@@ -12,12 +12,13 @@ import sys
 import numpy as np
 import astropy.io.fits as fits
 import argparse
-from tqdm import tqdm
+#from tqdm import tqdm
 from scipy import spatial
 from scipy.interpolate import griddata as gd
 from scipy.interpolate import interp1d
 from astropy import wcs
-from martxcfits import rebinatt, verboseprint
+from martxclib.martxcfun import *
+from martxclib.martxcfits import rebinatt
 class HelpfulParser(argparse.ArgumentParser):
 	'''
 	Handling errors
@@ -257,13 +258,13 @@ The following tasks were done within this loop:
 
 if vigname is None:
     vprint('Raw exposure map (not corrected for Vignetting effects)')
-    for aid in tqdm(range(len(newattra))):
+    for aid in progressbar(range(len(newattra))):
         pnt = np.array([newattra[aid],newattdec[aid]])
         ix = tree.query_ball_point(pnt, fovdeg)
         expmap[ix] += attres
 else:
     vprint('Vignetted exposure map')
-    for aid in tqdm(range(len(newattra))):
+    for aid in progressbar(range(len(newattra))):
         pnt = np.array([newattra[aid],newattdec[aid]])
         ix = tree.query_ball_point(pnt, fovdeg)
         expmap[ix] += vig2d(ras_1d[ix], decs_1d[ix], pnt) * attres

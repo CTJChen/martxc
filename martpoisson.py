@@ -13,7 +13,7 @@ import sys
 import numpy as np
 import astropy.io.fits as fits
 import argparse
-from tqdm import tqdm
+from martxclib.martxcfun import *
 from scipy import spatial
 from scipy.interpolate import griddata as gd
 from scipy.interpolate import interp1d
