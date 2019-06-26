@@ -8,19 +8,15 @@ martexpmap
 
 
 ## Installation
-Simply run the following command in your terminal:
+In a terminal, under the path in which you want to have the software installed, 
+run the following commands:
 
-$ pip install --user git+https://github.com/CTJChen/martxc
-
-If you don't have writing permission to your python environment path, you may try the following:
-# Use anaconda python. After installing anaconda python, run the following commands:
-$ conda install git pip
-$ pip install --user git+https://github.com/CTJChen/martxc
+$ git clone https://github.com/CTJChen/martxc
+$ cd martxc
+$ python setup.py install
 
 ## martxc uses the following python packages:
 
 * numpy, scipy, astropy
-* astropy
-* argparse
 
 
