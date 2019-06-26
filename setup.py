@@ -21,7 +21,6 @@ setup(name='martxc',
           "scipy",
           "numpy",
           "astropy",
-          "tqdm",
           "argparse",
       ],
       )
