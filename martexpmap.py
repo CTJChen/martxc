@@ -17,7 +17,7 @@ from scipy import spatial
 from scipy.interpolate import griddata as gd
 from scipy.interpolate import interp1d
 from astropy import wcs
-
+from martxcfits import rebinatt, verboseprint
 class HelpfulParser(argparse.ArgumentParser):
 	'''
 	Handling errors
@@ -26,37 +26,6 @@ class HelpfulParser(argparse.ArgumentParser):
 		sys.stderr.write('error: %s\n' % message)
 		sys.stderr.write('run \"python martexpmap.py -h\" for helps\n')
 		sys.exit(2)
-
-
-def rebinatt(atttime, attra, attdec, attres):
-	'''
-	The function to rebinning the attitude file	
-	#dist -- not used for now.
-	Rebin the ATT array according to the new attres.
-	Based on this scipy coockbook:
-	https://scipy-cookbook.readthedocs.io/items/Rebinning.html
-	'''
-	a = np.vstack((atttime, attra, attdec))
-	oldres = atttime[1] - atttime[0]
-	if oldres == attres:
-		return a
-	else:
-		k = int(oldres / attres)
-		newlen = len(atttime) * k
-		newshape = (3, newlen)
-		assert len(a.shape) == len(newshape)
-		slices = [slice(0, old, float(old) / new) for old, new in zip(a.shape, newshape)]
-		coordinates = np.mgrid[slices]
-		indices = coordinates.astype('i')  # choose the biggest smaller integer index
-		newatttime, newattra, newattdec = a[tuple(indices)]
-		newatttime = np.linspace(newatttime[0], newatttime[-1], len(newatttime))
-		for raid in range(len(attra) - 1):
-			newattra[raid * k:(raid + 1) * k] = \
-			np.linspace(attra[raid], attra[raid + 1], k)
-		for decid in range(len(attdec) - 1):
-			newattdec[decid * k:(decid+1) * k] = \
-			np.linspace(attdec[decid], attdec[decid + 1], k)
-		return newatttime, newattra, newattdec
 
 
 
@@ -97,7 +66,8 @@ parser.add_argument('-rasize', type=float, required=False, default=30.,
 parser.add_argument('-decsize', type=float, required=False, default=30.,
 	help='DEC pixel size in arcsec.')
 
-parser.add_argument('-box', nargs='+', type=float, default=[],
+parser.add_argument(
+	'-box', nargs='+', type=float, default=[],
 	help="""list of ra dec values specifying the 4 corners of the box.
 	Example: -box ra1 ra2 dec1 dec2""")
 
@@ -122,15 +92,7 @@ args = parser.parse_args()
 
 verbose = args.verbose
 
-if verbose:
-    def vprint(*args):
-        # Print each argument separately so caller doesn't need to
-        # stuff everything to be printed into a single string
-        for arg in args:
-           print(arg)
-else:   
-    vprint = lambda *a: None      # do-nothing function
-
+vprint = verboseprint(verbose)
 
 attname = args.attname
 vigname = args.vigname
@@ -239,9 +201,17 @@ elif (len(args.box) == 4) | (len(args.box) == 0):
 else:
 	parser.error('Must provide four radec values (e.g., python test_args.py -box ra1 ra2 dec1 dec2)')
 
-vprint('ra = [' +  str(np.round(ra1,4)) + ', ' + str(np.round(ra2,4)) + ']')
-vprint('dec = [' +  str(np.round(dec1,4)) + ', ' + str(np.round(dec2,4)) + ']')
-vprint('radecsize = [' +  str(np.round(rasize,2)) + ', ' + str(np.round(decsize,2)) + '] (arcsec)')
+vprint(
+	'ra = [' + str(np.round(ra1, 4)) + ', ' +
+	str(np.round(ra2, 4)) + ']')
+vprint(
+	'dec = [' + str(np.round(dec1, 4)) + ', ' +
+	str(np.round(dec2, 4)) + ']')
+vprint(
+	'radecsize = [' + str(np.round(rasize, 2)) + ', ' +
+	str(np.round(decsize, 2)) + '] (arcsec)')
+
+
 
 # work only with attitude entries within the area of interests
 atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
