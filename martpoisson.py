@@ -53,6 +53,9 @@ parser.add_argument('-exptime', type=float, required=False,
 parser.add_argument('-expname', type=str, required=False,
 	help='Name of the exposure map.')
 
+parser.add_argument('-verbose', type=bool, required=False, default=True,
+	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
+
 args = parser.parse_args()
 
 print(args)
@@ -62,6 +65,8 @@ combine = args.combine
 exptime = args.exptime
 expname = args.expname
 nrate = args.nrate
+
+vprint = verboseprint(verbose)
 
 
 # noise function
@@ -75,23 +80,26 @@ if len(ihdu) == 1:
 	img = ihdu[0].data
 else:
 	img = ihdu[1].data
-	if expname is not None:
-		ehdu = fits.open(expname)
-		if len(ehdu) == 1:
-			expmap = ehdu[0].data
-		else:
-			expmap = ehdu[1].data
-		exptime = np.max(expmap)
-		# Now draw poisson noise based on expvalue on a pixel-by-pixel basis
-		noise = pnoise(expmap)
-		# if exposure value is zero, assume no backgrounds.
-		inoexp = np.where(expmap == 0)
-		noise[inoexp] = 0.
+
+if expname is not None:
+	vprint('Use exposuremap')
+	ehdu = fits.open(expname)
+	if len(ehdu) == 1:
+		expmap = ehdu[0].data
 	else:
-		# if no exp fits file is provided,
-		# use image fits file and assume const. exp time.
-		ishape = np.shape(img)
-		noise = np.random.poisson(nrate * exptime, size=ishape)
+		expmap = ehdu[1].data
+	exptime = np.max(expmap)
+	# Now draw poisson noise based on expvalue on a pixel-by-pixel basis
+	noise = pnoise(expmap)
+	# if exposure value is zero, assume no backgrounds.
+	inoexp = np.where(expmap == 0)
+	noise[inoexp] = 0.
+else:
+	# if no exp fits file is provided,
+	# use image fits file and assume const. exp time.
+	vprint('Use exposure time')
+	ishape = np.shape(img)
+	noise = np.random.poisson(nrate * exptime, size=ishape)
 
 
 if combine:
