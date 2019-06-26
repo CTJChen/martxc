@@ -1,6 +1,6 @@
 # martxc [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
-msfc_artxc is a collection of data analysis and reduction tools for the X-ray telescope
-ART-XC.
+martxc is a collection of data analysis and reduction tools for the X-ray telescope
+ART-XC. 
 
 ## List of tools
 
@@ -22,3 +22,7 @@ python setup.py install
 ## martxc uses the following python packages:
 
 * numpy, scipy, astropy
+
+## License
+The repository is developed by Chien-Ting Chen (C) 2019- at the NASA [MSFC X-ray group](https://wwwastro.msfc.nasa.gov/).
+
