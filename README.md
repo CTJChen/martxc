@@ -1,4 +1,4 @@
-# martxc
+# martxc [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
 msfc_artxc is a collection of data analysis and reduction tools for the X-ray telescope
 ART-XC.
 
