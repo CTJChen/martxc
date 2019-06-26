@@ -43,7 +43,7 @@ parser.add_argument('-outname', type=str, required=True, default='output.fits',
 parser.add_argument('-combine', type=bool, required=True, default=True, 
 	help='Set to 0 would return the poisson background only. Otherwise a image combined with background would be saved.')
 
-parser.add_argument('-nrate', type=bool, required=True, default=1e-3, 
+parser.add_argument('-nrate', type=float, required=True, default=1e-3, 
 	help='Noise count rate in count per second per pixel.')
 
 # optional arguments
