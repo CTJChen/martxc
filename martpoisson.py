@@ -14,9 +14,6 @@ import numpy as np
 import astropy.io.fits as fits
 import argparse
 from martxclib.martxcfun import *
-from scipy import spatial
-from scipy.interpolate import griddata as gd
-from scipy.interpolate import interp1d
 from astropy import wcs
 
 
@@ -32,28 +29,28 @@ parser = HelpfulParser(description=__doc__,
 
 
 # disabled for now. - CTC 20190620
-# parser.add_argument('--xmlname', type=str, required=False,
+# parser.add_argument('-xmlname', type=str, required=False,
 # help='name of the telescope instrument specifications, an XML file.\n If not specified, the fov parameter should be specified.').
 #
 
 # Required arguments
-parser.add_argument('--imgname', type=str, required=True,
+parser.add_argument('-imgname', type=str, required=True,
 	help='Name of the event file.')
 
-parser.add_argument('--outname', type=str, required=True, default='output.fits',
+parser.add_argument('-outname', type=str, required=True, default='output.fits',
 	help='Name of the output file.')
 
-parser.add_argument('--combine', type=bool, required=True, default=True, 
+parser.add_argument('-combine', type=bool, required=True, default=True, 
 	help='Set to 0 would return the poisson background only. Otherwise a image combined with background would be saved.')
 
-parser.add_argument('--nrate', type=bool, required=True, default=1e-3, 
+parser.add_argument('-nrate', type=bool, required=True, default=1e-3, 
 	help='Noise count rate in count per second per pixel.')
 
 # optional arguments
-parser.add_argument('--exptime', type=float, required=False,
+parser.add_argument('-exptime', type=float, required=False,
 	help='Exposure value for calculating the background.')
 
-parser.add_argument('--expname', type=str, required=False,
+parser.add_argument('-expname', type=str, required=False,
 	help='Name of the exposure map.')
 
 args = parser.parse_args()
