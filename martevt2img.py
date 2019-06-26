@@ -83,7 +83,6 @@ evtname = args.evtname
 outname = args.outname
 rasize = args.rasize
 decsize = args.decsize
-energy = args.energy
 box = args.box
 
 evttab = fits.getdata(evtname)
