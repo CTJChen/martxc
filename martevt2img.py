@@ -126,13 +126,6 @@ ras, decs = np.meshgrid(ragrid, decgrid)
 ras_1d = ras.flatten()
 decs_1d = decs.flatten()
 
-# Work on the meshgrid - use cKDTree to find the mesh points that's
-# within the FOV radius at a given pointing position
-coordinates = np.c_[ras.ravel(), decs.ravel()]
-tree = spatial.cKDTree(coordinates)
-
-img = np.zeros(np.shape(coordinates)[0])
-
 h = plt.hist2d(
 	np.asrray(evttab['RA']),
 	np.asarray(evttab['DEC']), bins=[npixra, npixdec])
