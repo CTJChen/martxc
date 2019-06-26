@@ -58,15 +58,17 @@ parser.add_argument('-verbose', type=bool, required=False, default=True,
 
 args = parser.parse_args()
 
-print(args)
+verbose = args.verbose
+vprint = verboseprint(verbose)
+
+vprint(args)
+
 imgname = args.imgname
 outname = args.outname
 combine = args.combine
 exptime = args.exptime
 expname = args.expname
 nrate = args.nrate
-
-vprint = verboseprint(verbose)
 
 
 # noise function
