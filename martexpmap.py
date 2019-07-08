@@ -196,7 +196,7 @@ elif (len(args.box) == 4) | (len(args.box) == 0):
 	w = wcs.WCS(naxis=2)
 	w.wcs.crpix = [npixra/2.,npixdec/2.]
 	w.wcs.cdelt = np.array([rasize/3600., decsize/3600.])
-	w.wcs.crval = [np.median(newattra), np.median(newattdec)]
+	w.wcs.crval = [(ra2 - ra1) * 0.5, (dec2 - dec1) * 0.5]
 	w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
 	header_out = w.to_header()
 else:
@@ -219,6 +219,7 @@ atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
                 (atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
 if timelim is not None:
 	atttab = atttab[atttab['TIME'] <= atttab['TIME'][0] + timelim]
+
 atttime = atttab['TIME']
 attra = atttab['RA']
 attdec = atttab['DEC']
