@@ -131,5 +131,5 @@ for i in progressbar(range(len(c))):
     img[decpix[i],rapix[i]] += 1
 
 
-hdu = fits.PrimaryHDU(h[0], header=header_out)
+hdu = fits.PrimaryHDU(img, header=header_out)
 hdu.writeto(outname, overwrite=True)
