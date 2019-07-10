@@ -196,7 +196,7 @@ elif (len(args.box) == 4) | (len(args.box) == 0):
 	w = wcs.WCS(naxis=2)
 	w.wcs.crpix = [npixra/2.,npixdec/2.]
 	w.wcs.cdelt = np.array([rasize/3600., decsize/3600.])
-	w.wcs.crval = [(ra2 - ra1) * 0.5, (dec2 - dec1) * 0.5]
+	w.wcs.crval = [(ra2 + ra1) * 0.5, (dec2 + dec1) * 0.5]
 	w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
 	header_out = w.to_header()
 else:

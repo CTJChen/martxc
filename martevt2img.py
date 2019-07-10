@@ -90,7 +90,7 @@ evttab = fits.getdata(evtname)
 # Get RA/DEC range
 if (len(box) == 4) | (len(box) == 0):
 	if len(box) == 4:
-		ra1, ra2, dec1, dec2 = args.box
+		ra1, ra2, dec1, dec2 = box
 	else:
 		ra1 = np.min(evttab['RA'])
 		ra2 = np.max(evttab['RA'])
@@ -120,12 +120,13 @@ vprint(
 	'radecsize = [' + str(np.round(rasize, 2)) + ', ' +
 	str(np.round(decsize, 2)) + '] (arcsec)')
 
+'''
 ragrid = np.linspace(ra1, ra2, npixra)
 decgrid = np.linspace(dec1, dec2, npixdec)
 ras, decs = np.meshgrid(ragrid, decgrid)
 ras_1d = ras.flatten()
 decs_1d = decs.flatten()
-
+'''
 h = plt.hist2d(
 	np.asarray(evttab['RA']),
 	np.asarray(evttab['DEC']), bins=[npixra, npixdec])
