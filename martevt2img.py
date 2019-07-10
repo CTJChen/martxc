@@ -127,7 +127,10 @@ rapix, decpix = w.world_to_pixel(c)
 img = np.zeros((npixdec,npixra))
 rapix = np.floor(rapix).astype(int)
 decpix = np.floor(decpix).astype(int)
-for i in progressbar(range(len(c))):
+id_in = np.where((rapix <= npixra - 1) & (decpix <= npixdec -1))[0]
+rapix = rapix[id_in]
+decpix = decpix[id_in]
+for i in progressbar(range(len(rapix))):
     img[decpix[i],rapix[i]] += 1
 
 
