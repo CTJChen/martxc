@@ -136,9 +136,9 @@ if vigname is not None:
 	# interpolate the vignetting function at the input energy
 	grid_e, grid_th = np.meshgrid(np.array([energy]), vig_theta)
 	points = np.transpose(
-	                      [np.tile(vig_emed, len(vig_theta)), \
-	                       np.repeat(vig_theta, len(vig_emed))]
-	                       )
+						  [np.tile(vig_emed, len(vig_theta)), \
+						   np.repeat(vig_theta, len(vig_emed))]
+						   )
 	values = vig_vig.flatten()
 	int_vig = gd(points, values, (grid_e, grid_th), method='nearest').flatten()
 	# define a vignetting function which takes a off-axis angle in arcmin
@@ -204,7 +204,7 @@ vprint(
 
 # work only with attitude entries within the area of interests
 atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
-                (atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
+				(atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
 if timelim is not None:
 	atttab = atttab[atttab['TIME'] <= atttab['TIME'][0] + timelim]
 
@@ -213,11 +213,11 @@ attra = atttab['RA']
 attdec = atttab['DEC']
 
 if attres is None:
-    '''
-    Assuming the time steps in the attitude file is a constant
-    '''
-    attres = atttime[1] - atttime[0]
-    vprint('no attres parameter given, no attitude rebinning would be carried out')
+	'''
+	Assuming the time steps in the attitude file is a constant
+	'''
+	attres = atttime[1] - atttime[0]
+	vprint('no attres parameter given, no attitude rebinning would be carried out')
 else:
 	vprint('re-bininng the attitude file using the new time step')
 newatttime, newattra, newattdec = rebinatt(atttime, attra, attdec, attres)
@@ -246,15 +246,15 @@ The following tasks were done within this loop:
 '''
 
 if vigname is None:
-    vprint('Raw exposure map (not corrected for Vignetting effects)')
-    for aid in progressbar(range(len(newattra))):
+	vprint('Raw exposure map (not corrected for Vignetting effects)')
+	for aid in progressbar(range(len(newattra))):
 		pnt = cd.SkyCoord(newattra[aid],newattdec[aid],unit=(u.degree,u.degree))
 		dist = pnt.separation(cat_grid)
 		ix = np.where(dist.deg <= fovdeg)[0]
 		expmap[ix] += attres
 else:
-    vprint('Vignetted exposure map')
-    for aid in progressbar(range(len(newattra))):
+	vprint('Vignetted exposure map')
+	for aid in progressbar(range(len(newattra))):
 		pnt = cd.SkyCoord(newattra[aid],newattdec[aid],unit=(u.degree,u.degree))
 		dist = pnt.separation(cat_grid)
 		ix = np.where(pnt.separation(cat_grid).deg <= fovdeg)[0]
