@@ -163,15 +163,18 @@ if imgname is not None:
 	npixdec = hdr['NAXIS2']
 	rasize = hdr['CDELT1'] * 3600.
 	decsize = hdr['CDELT2'] * 3600.
+	w = wcs.WCS(hdr)
 	ra1 = w.pixel_to_world(0,0).ra.deg
 	dec1 = w.pixel_to_world(0,0).dec.deg
 	ra2 = w.pixel_to_world(npixra-1,npixdec-1).ra.deg
 	dec2 = w.pixel_to_world(npixra-1,npixdec-1).dec.deg
-	w = wcs.WCS(hdr)
 	header_out = w.to_header()
 elif (len(args.box) == 4) | (len(args.box) == 0):
 	if len(args.box) == 4:
 		ra1, ra2, dec1, dec2 = args.box
+		# only crop out attitudes if a box is used.
+		atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
+				(atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
 	else:
 		box = None
 		ra1 = np.min(atttab['RA'])
@@ -203,8 +206,6 @@ vprint(
 
 
 # work only with attitude entries within the area of interests
-atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
-				(atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
 if timelim is not None:
 	atttab = atttab[atttab['TIME'] <= atttab['TIME'][0] + timelim]
 
