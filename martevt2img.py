@@ -120,16 +120,14 @@ vprint(
 	'radecsize = [' + str(np.round(rasize, 2)) + ', ' +
 	str(np.round(decsize, 2)) + '] (arcsec)')
 
-'''
-ragrid = np.linspace(ra1, ra2, npixra)
-decgrid = np.linspace(dec1, dec2, npixdec)
-ras, decs = np.meshgrid(ragrid, decgrid)
-ras_1d = ras.flatten()
-decs_1d = decs.flatten()
-'''
-h = plt.hist2d(
-	np.asarray(evttab['RA']),
-	np.asarray(evttab['DEC']), bins=[npixra, npixdec])
+c = cd.SkyCoord(evttab['RA'],evttab['DEC'],unit=(u.degree,u.degree))
+rapix, decpix = w.world_to_pixel(c)
+img = np.zeros((npixdec,npixra))
+rapix = np.floor(rapix).astype(int)
+decpix = np.floor(decpix).astype(int)
+for i in progressbar(range(len(c))):
+    img[decpix[i],rapix[i]] += 1
+
 
 hdu = fits.PrimaryHDU(h[0], header=header_out)
 hdu.writeto(outname, overwrite=True)

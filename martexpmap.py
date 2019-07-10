@@ -17,6 +17,8 @@ from scipy import spatial
 from scipy.interpolate import griddata as gd
 from scipy.interpolate import interp1d
 from astropy import wcs
+import astropy.coordinates as cd
+import astropy.units as u
 from martxclib.martxcfun import *
 from martxclib.martxcfits import rebinatt
 class HelpfulParser(argparse.ArgumentParser):
@@ -139,23 +141,9 @@ if vigname is not None:
 	                       )
 	values = vig_vig.flatten()
 	int_vig = gd(points, values, (grid_e, grid_th), method='nearest').flatten()
+	# define a vignetting function which takes a off-axis angle in arcmin
+	# and returns a vignetting fraction
 	vigfunc = interp1d(vig_theta*60., int_vig)
-
-	def vig2d(ra, dec, pnt):
-		'''
-		For a given pointing position,
-		calculate the corresponding Vignetting values at the input RA/DEC values.
-		ra = x-axis
-		dec = y-axis
-		pnt = pointing position, with array([ra_pnt, dec_pnt]), in degrees
-		'''
-		pntra, pntdec = pnt
-		radist = ra - pntra
-		decdist = dec - pntdec
-		dist = np.sqrt((radist)**2 + (decdist)**2) * 60.  # in arcmin
-		vigout = np.zeros_like(dist)
-		vigout = vigfunc(dist)
-		return vigout
 else:
 	vprint('Vignetting function NOT found, calculate a raw exposure map.')
 
@@ -245,7 +233,7 @@ ras, decs = w.wcs_pix2world(X, Y, 0)
 ras_1d = ras.flatten()
 decs_1d = decs.flatten()
 coordinates = np.c_[ras.ravel(), decs.ravel()]
-tree = spatial.cKDTree(coordinates)
+cat_grid = cd.SkyCoord(ras_1d,decs_1d,unit=(u.degree,u.degree))
 expmap = np.zeros(npixra * npixdec)
 
 '''
@@ -260,15 +248,17 @@ The following tasks were done within this loop:
 if vigname is None:
     vprint('Raw exposure map (not corrected for Vignetting effects)')
     for aid in progressbar(range(len(newattra))):
-        pnt = np.array([newattra[aid],newattdec[aid]])
-        ix = tree.query_ball_point(pnt, fovdeg)
-        expmap[ix] += attres
+		pnt = cd.SkyCoord(newattra[aid],newattdec[aid],unit=(u.degree,u.degree))
+		dist = pnt.separation(cat_grid)
+		ix = np.where(dist.deg <= fovdeg)[0]
+		expmap[ix] += attres
 else:
     vprint('Vignetted exposure map')
     for aid in progressbar(range(len(newattra))):
-        pnt = np.array([newattra[aid],newattdec[aid]])
-        ix = tree.query_ball_point(pnt, fovdeg)
-        expmap[ix] += vig2d(ras_1d[ix], decs_1d[ix], pnt) * attres
+		pnt = cd.SkyCoord(newattra[aid],newattdec[aid],unit=(u.degree,u.degree))
+		dist = pnt.separation(cat_grid)
+		ix = np.where(pnt.separation(cat_grid).deg <= fovdeg)[0]
+		expmap[ix] += vigfunc(dist[ix].arcmin) * attres
 
 # header is an astropy.io.fits.Header object.  We can use it to create a new
 # PrimaryHDU and write it to a file.
