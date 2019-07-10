@@ -175,10 +175,10 @@ if imgname is not None:
 	npixdec = hdr['NAXIS2']
 	rasize = hdr['CDELT1'] * 3600.
 	decsize = hdr['CDELT2'] * 3600.
-	ra1 = hdr['CRVAL1'] - hdr['CDELT1'] * (hdr['CRPIX1'] - 1)
-	ra2 = hdr['CRVAL1'] + hdr['CDELT1'] * (npixra - hdr['CRPIX1'])
-	dec1 = hdr['CRVAL2'] - hdr['CDELT2'] * (hdr['CRPIX2'] - 1)
-	dec2 = hdr['CRVAL2'] + hdr['CDELT2'] * (npixdec - hdr['CRPIX2'])
+	ra1 = w.pixel_to_world(0,0).ra.deg
+	dec1 = w.pixel_to_world(0,0).dec.deg
+	ra2 = w.pixel_to_world(npixra-1,npixdec-1).ra.deg
+	dec2 = w.pixel_to_world(npixra-1,npixdec-1).dec.deg
 	w = wcs.WCS(hdr)
 	header_out = w.to_header()
 elif (len(args.box) == 4) | (len(args.box) == 0):
@@ -238,12 +238,12 @@ del(atttime, attra, attdec)
 
 # Work on the meshgrid -- use cKDTree to find the mesh points that's 
 # within the FOV radius at a given pointing position
-ragrid = np.linspace(ra1, ra2, npixra)
-decgrid = np.linspace(dec1, dec2, npixdec)
-ras, decs = np.meshgrid(ragrid, decgrid)
+x = np.arange(npixra)
+y = np.arange(npixdec)
+X, Y = np.meshgrid(x, y)
+ras, decs = w.wcs_pix2world(X, Y, 0)
 ras_1d = ras.flatten()
 decs_1d = decs.flatten()
-
 coordinates = np.c_[ras.ravel(), decs.ravel()]
 tree = spatial.cKDTree(coordinates)
 expmap = np.zeros(npixra * npixdec)
