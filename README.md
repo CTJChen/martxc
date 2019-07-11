@@ -33,6 +33,8 @@ After doing so, the following command will display the help doc of martevt2img.p
 martevt2img.py -h
 ```
 
+See the [example document](https://github.com/CTJChen/martxc/blob/master/examples/examples.md) for further instructions.
+
 For any questions/issues/bugs, please report on this github repository or send an email to ctchen dot git @ gmail.
 
 ## martxc uses the following python packages:
