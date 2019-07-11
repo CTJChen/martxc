@@ -40,3 +40,22 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
 		show(i + 1)
 	file.write("\n")
 	file.flush()
+
+def parse_ds9(region):
+    """
+    Parse ds9 region
+    only has limited capabiliy for now.
+    Will include astropy region pacakge or pyregion in the future.
+    """
+    # Skip blanks
+    outputlist = []
+    with open(region) as fp:
+        line = fp.readline()
+        for line in fp:
+            if line.strip() in coordinate_systems:
+                print('DS9 region system : ' + line.strip())
+                outputlist.append(line.strip())
+            if line.strip()[0:6] == 'circle':
+                print('Reading region ' + line.strip())
+                outputlist.append(line.strip()[7:].split(','))
+        return outputlist
