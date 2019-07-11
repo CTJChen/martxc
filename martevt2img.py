@@ -35,11 +35,11 @@ parser = HelpfulParser(
 
 # Required arguments
 parser.add_argument(
-	'-evtname', type=str, required=True,
+	'-evt', type=str, required=True,
 	help='Name of the event file.')
 
 parser.add_argument(
-	'-outname', type=str, required=True, default='expmap.fits',
+	'-out', type=str, required=True, default='expmap.fits',
 	help='Name of the output file.')
 
 parser.add_argument(
@@ -61,18 +61,11 @@ parser.add_argument(
 parser.add_argument('-verbose', type=bool, required=False, default=True,
 	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
 
-#
-#parser.add_argument(
-#	'-energy', nargs='+', type=float, default=[],
-#	help="""Energy range of events to be used.
-#	Multiple energy ranges are allowed, but the inputs must include
-#	both the lower and upper bounds of each energy range.
-#	Example: '-energy 5 10 12 30' would use events with energy between 5-30 keV
-#	except those between 10-12 keV.""")
-#
+parser.add_argument('-overwrite', type=bool, required=False, default=True,
+	help='Overwrite if set as True.')
 
 parser.add_argument(
-	'-gtiname', type=str, required=False,
+	'-gti', type=str, required=False,
 	help='Good Time Interval table file name.')
 
 args = parser.parse_args()
@@ -80,14 +73,15 @@ args = parser.parse_args()
 verbose = args.verbose
 vprint = verboseprint(verbose)
 
+overwrite = args.overwrite
 
-evtname = args.evtname
-outname = args.outname
+evt = args.evt
+out = args.out
 rasize = args.rasize
 decsize = args.decsize
 box = args.box
 
-evttab = fits.getdata(evtname)
+evttab = fits.getdata(evt)
 
 # Get RA/DEC range
 if (len(box) == 4) | (len(box) == 0):
@@ -135,4 +129,4 @@ for i in progressbar(range(len(rapix))):
 
 
 hdu = fits.PrimaryHDU(img, header=header_out)
-hdu.writeto(outname, overwrite=True)
+hdu.writeto(out, overwrite=True)
