@@ -263,6 +263,6 @@ else:
 
 # header is an astropy.io.fits.Header object.  We can use it to create a new
 # PrimaryHDU and write it to a file.
-hdu = fits.PrimaryHDU(expmap.reshape(npixra,npixdec), header=header_out)
+hdu = fits.PrimaryHDU(expmap.reshape(npixdec,npixra), header=header_out)
 # Save to FITS file
 hdu.writeto(out, overwrite=overwrite)
