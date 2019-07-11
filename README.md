@@ -18,7 +18,10 @@ martevt2img.py - converts an event list fits file to an image with designated RA
 
 martexpmap.py - computes an exposure map based on an attitude file with designated RA and DEC pixel size and optional RA/DEC range parameters. Also works with products of martevt2img.py to make expsure maps with shared fits header keywords. 
 
-martpoisson.py - A simplified script for adding background noise to a fits image. 
+martmkarf.py - generate aperture and off-axis corrected auxillary response file.
+
+martpoisson.py - a simplified script for adding background noise to a fits image. Requires prior knowledge on the background count rate per pixel (not a part of martxc).
+
 
 ## martxc uses the following python packages:
 
