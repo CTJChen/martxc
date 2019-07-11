@@ -63,8 +63,9 @@ args = parser.parse_args()
 
 verbose = args.verbose
 vprint = verboseprint(verbose)
-
 vprint(args)
+
+overwrite = args.overwrite
 
 img = args.img
 out = args.out
