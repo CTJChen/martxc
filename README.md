@@ -11,6 +11,13 @@ cd martxc
 python setup.py install
 ```
 
+Make sure to get the latest version by checking [changelog.md](https://github.com/CTJChen/martxc/blob/master/changelog.md).
+You can re-install or type the following under the orignally installed path to get the latest updates:
+```bash
+git pull
+```
+
+
 ## Instructions and list of scripts
 
 The current version works with "level 2" event lists generated with [SIXTE](https://www.sternwarte.uni-erlangen.de/research/sixte/). 
