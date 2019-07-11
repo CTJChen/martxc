@@ -29,3 +29,6 @@ For simplicity, we did not use SIXTE's background modules when simulating our ev
 ```bash
 python martpoisson.py -img img_single_source_5ks.fits -out img_noise_single_source_5ks.fits -combine True -nrate 1e-3 -exp exp_4_pointings_5ks.fits 
 ```
+We can also define a DS9 region on the source and obtain the auxillary response matrix file (ARF) based on the ART-XC on-axis ARF:
+```bash
+python martmkarf.py -arf art-xc_v0.0.arf -vig artxc_vignetting.fits -psf artxc_psf_eef.fits -out offaxis_arf.arf -img img_single_source_5ks.fits -region ds9.reg
