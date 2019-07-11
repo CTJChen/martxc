@@ -22,7 +22,7 @@ After getting the image, we can then compute the exposure map for each image pix
 
 ```bash
 python martevt2img.py -evt ./examples/evt_single_source_5ks.fits -out img_single_source_5ks.fits -rasize 45.0 -decsize 45.0 -box 268.0 272.0 63.5 68.5
-python martexpmap.py -att ./examples/att_60ks_4_pointings.fits -out exp_4_pointings_5ks.fits -fov 18.0 -img img_single_source_5ks.fits -time 5000.0
+python martexpmap.py -att ./examples/att_60ks_4_pointings.fits -out exp_4_pointings_5ks.fits -fov 18.0 -img img_single_source_5ks.fits -time 5000.0 -vig artxc_vignetting.fits
 ```
 
 For simplicity, we did not use SIXTE's background modules when simulating our event lists. Alternatively, we simulate expected background count rate per pixel given our pixel size, using the NuSTAR background spectra, ART-XC response matricies, and ART-XC PSF. To the first order, ART-XC's background count-rate per pixel is 1e-3 count/s. We can use this information to add Poissonian noise to the image:
