@@ -119,4 +119,4 @@ else:
 	ihdu[1].data = imgtab
 
 
-ihdu.writeto(out, overwrite=ovewrite)
+ihdu.writeto(out, overwrite=overwrite)
