@@ -10,6 +10,8 @@ git clone https://github.com/CTJChen/martxc
 cd martxc
 python setup.py install
 ```
+
+
 ## Instructions and list of scripts
 
 The current version works with "level 2" event lists generated with [SIXTE](https://www.sternwarte.uni-erlangen.de/research/sixte/). 
@@ -22,6 +24,16 @@ martmkarf.py - generate aperture and off-axis corrected auxillary response file.
 
 martpoisson.py - a simplified script for adding background noise to a fits image. Requires prior knowledge on the background count rate per pixel (not a part of martxc).
 
+The python scripts should be executable, you can add the martxc path to your system PATH environment if necessary.
+```bash
+export PATH=/PATH_TO_MARTXC/:$PATH
+```
+You can then run the scripts like this -- the following command will display the help doc of martevt2img.py:
+```bash
+martevt2img.py -h
+```
+
+For any questions/issues/bugs, please report on this github repository or send an email to ctchen dot git @ gmail.
 
 ## martxc uses the following python packages:
 
