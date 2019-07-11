@@ -10,7 +10,7 @@ Several event files, simulated using the [SIXTE](https://www.sternwarte.uni-erla
 This example uses martexpmap.py to generate an exposure map. This would be useful for finding out the depth of ART-XC all-sky survey coverage of a certain sky region. Since the PSF half-power-diameter of ART-XC is ~45 arcsec, the exposuer map is calculated using a square pixel with 45.0 arcsec on each side.
 
 ```bash
-python martexpmap.py -att att_survey_nep_4deg_by_4deg.fits -out expmap_survey.fits -fov 18.0 -vig artxc_vignetting.fits -rasize 45.0 -decsize 45.0 -time 100000
+python martexpmap.py -att ./examples/att_survey_nep_4deg_by_4deg.fits -out expmap_survey.fits -fov 18.0 -vig artxc_vignetting.fits -rasize 45.0 -decsize 45.0 -time 100000
 ```
 This would make an exposure map showing the survey coverage of the first 100 ks.
 Note that the field-of-view radius of ART-XC is 18 arcmin, which has to be manually set for now. 
@@ -21,9 +21,9 @@ Here we will use the event list simulated based on observing a single luminous s
 After getting the image, we can then compute the exposure map for each image pixel. This could be used to obtain the count rates for each pixel.
 
 ```bash
-python martevt2img.py -evt evt_single_source_5ks.fits -out img_single_source_5ks.fits -rasize 45.0
+python martevt2img.py -evt ./examples/evt_single_source_5ks.fits -out img_single_source_5ks.fits -rasize 45.0
                       -decsize 45.0 -box 268.0 272.0 63.5 68.5
-python martexpmap.py -att att_60ks_4_pointings.fits -out exp_4_pointings_5ks.fits -fov 18.0 -img img_single_source_5ks.fits -time 5000.0
+python martexpmap.py -att ./examples/att_60ks_4_pointings.fits -out exp_4_pointings_5ks.fits -fov 18.0 -img img_single_source_5ks.fits -time 5000.0
 ```
 
 For simplicity, we did not use SIXTE's background modules when simulating our event lists. Alternatively, we simulate expected background count rate per pixel given our pixel size, using the NuSTAR background spectra, ART-XC response matricies, and ART-XC PSF. To the first order, ART-XC's background count-rate per pixel is 1e-3 count/s. We can use this information to add Poissonian noise to the image:
