@@ -34,10 +34,10 @@ parser = HelpfulParser(description=__doc__,
 #
 
 # Required arguments
-parser.add_argument('-imgname', type=str, required=True,
+parser.add_argument('-img', type=str, required=True,
 	help='Name of the event file.')
 
-parser.add_argument('-outname', type=str, required=True, default='output.fits',
+parser.add_argument('-out', type=str, required=True, default='output.fits',
 	help='Name of the output file.')
 
 parser.add_argument('-combine', type=bool, required=True, default=True, 
@@ -50,11 +50,14 @@ parser.add_argument('-nrate', type=float, required=True, default=1e-3,
 parser.add_argument('-exptime', type=float, required=False,
 	help='Exposure value for calculating the background.')
 
-parser.add_argument('-expname', type=str, required=False,
+parser.add_argument('-exp', type=str, required=False,
 	help='Name of the exposure map.')
 
 parser.add_argument('-verbose', type=bool, required=False, default=True,
 	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
+
+parser.add_argument('-overwrite', type=bool, required=False, default=True,
+	help='Overwrite if set as True.')
 
 args = parser.parse_args()
 
@@ -63,11 +66,11 @@ vprint = verboseprint(verbose)
 
 vprint(args)
 
-imgname = args.imgname
-outname = args.outname
+img = args.img
+out = args.out
 combine = args.combine
 exptime = args.exptime
-expname = args.expname
+exp = args.exp
 nrate = args.nrate
 
 
@@ -79,13 +82,13 @@ def pnoise(exp, nrate=nrate):
 # Reade image, some fits files have a blanck primary HDU, check this
 ihdu = fits.open(imgname)
 if len(ihdu) == 1:
-	img = ihdu[0].data
+	imgtab = ihdu[0].data.copy()
 else:
-	img = ihdu[1].data
+	imgtab = ihdu[1].data.copy()
 
-if expname is not None:
+if exp is not None:
 	vprint('Use exposuremap')
-	ehdu = fits.open(expname)
+	ehdu = fits.open(exp)
 	if len(ehdu) == 1:
 		expmap = ehdu[0].data
 	else:
@@ -100,19 +103,19 @@ else:
 	# if no exp fits file is provided,
 	# use image fits file and assume const. exp time.
 	vprint('Use exposure time')
-	ishape = np.shape(img)
+	ishape = np.shape(imgtab)
 	noise = np.random.poisson(nrate * exptime, size=ishape)
 
 
 if combine:
-	img += noise
+	imgtab += noise
 else:
-	img = noise
+	imgtab = noise
 
 if len(ihdu) == 1:
-	ihdu[0].data = img
+	ihdu[0].data = imgtab
 else:
-	ihdu[1].data = img
+	ihdu[1].data = imgtab
 
 
-ihdu.writeto(outname, overwrite=True)
+ihdu.writeto(out, overwrite=ovewrite)
