@@ -43,10 +43,10 @@ parser = HelpfulParser(description=__doc__,
 #
 
 # Required arguments
-parser.add_argument('-attname', type=str, required=True,
+parser.add_argument('-att', type=str, required=True,
 	help='Name of the attitude file.')
 
-parser.add_argument('-outname', type=str, required=True, default='expmap.fits',
+parser.add_argument('-out', type=str, required=True, default='expmap.fits',
 	help='Name of the output file.')
 
 parser.add_argument('-fov', type=float, required=True,
@@ -55,11 +55,11 @@ parser.add_argument('-fov', type=float, required=True,
 
 # optional arguments
 
-parser.add_argument('-vigname', type=str, required=False,
+parser.add_argument('-vig', type=str, required=False,
 	help='Name of the vignetting file. Only a fits file in compliance with the OGIP standard is supported (CAL/GEN/92-021). \
 	If not provided, the script would only calculate the "raw" exposure map.')
 
-parser.add_argument('-imgname', type=str, required=False,
+parser.add_argument('-img', type=str, required=False,
 	help='Name of an image file, the pixel size, RA/DEC range, and WCS keywords will be used. \
 	If not provided, must specify all the following RA/DEC pixel sizes.')
 
@@ -75,7 +75,7 @@ parser.add_argument(
 	Example: -box ra1 ra2 dec1 dec2""")
 
 parser.add_argument('-energy', type=float, required=False,
-	help='The user can specify the energy from which the vignetting function the script should use. Must specify -vigname to do this. \
+	help='The user can specify the energy from which the vignetting function the script should use. Must specify -vig to do this. \
 	If none is provided, the lowest energy vignetting function is used')
 
 parser.add_argument('-attres', type=float, required=False,
@@ -88,19 +88,19 @@ parser.add_argument('-time', type=float, required=False,
 parser.add_argument('-verbose', type=bool, required=False, default=True,
 	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
 
-
-
+parser.add_argument('-overwrite', type=bool, required=False, default=True,
+	help='Overwrite if set as True.')
 
 args = parser.parse_args()
 
 verbose = args.verbose
 
 vprint = verboseprint(verbose)
-
-attname = args.attname
-vigname = args.vigname
-imgname = args.imgname
-outname = args.outname
+overwrite = args.overwrite
+att = args.att
+vig = args.vig
+img = args.img
+out = args.out
 rasize = args.rasize
 decsize = args.decsize
 energy = args.energy
@@ -115,14 +115,14 @@ if verbose:
 
 
 # Read attitude file 
-atttab = fits.getdata(attname)
+atttab = fits.getdata(att)
 
 
 # Get the vignetting function at the designated energy --
 # only if a vignetting file name is provided
-if vigname is not None:
+if vig is not None:
 	vprint('Vignetting function will be used.\n')
-	vigtab = fits.getdata(vigname)		
+	vigtab = fits.getdata(vig)		
 	vig_theta = vigtab['THETA'][0]
 	if len(np.shape(vigtab['VIGNET'][0])) == 2:
 		vig_vig = vigtab['VIGNET'][0]
@@ -150,9 +150,9 @@ else:
 
 
 # Get RA/DEC range and pixel sizes
-if imgname is not None:
+if img is not None:
 	# This would override all radec related arguments
-	ihdu = fits.open(imgname)
+	ihdu = fits.open(img)
 	if len(ihdu) == 1:
 		img = ihdu[0].data
 		hdr = ihdu[0].header
@@ -246,7 +246,7 @@ The following tasks were done within this loop:
 3. 
 '''
 
-if vigname is None:
+if vig is None:
 	vprint('Raw exposure map (not corrected for Vignetting effects)')
 	for aid in progressbar(range(len(newattra))):
 		pnt = cd.SkyCoord(newattra[aid],newattdec[aid],unit=(u.degree,u.degree))
@@ -265,4 +265,4 @@ else:
 # PrimaryHDU and write it to a file.
 hdu = fits.PrimaryHDU(expmap.reshape(npixra,npixdec), header=header_out)
 # Save to FITS file
-hdu.writeto(outname, overwrite=True)
+hdu.writeto(out, overwrite=overwrite)
