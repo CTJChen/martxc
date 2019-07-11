@@ -80,7 +80,7 @@ def pnoise(exp, nrate=nrate):
 
 
 # Reade image, some fits files have a blanck primary HDU, check this
-ihdu = fits.open(imgname)
+ihdu = fits.open(img)
 if len(ihdu) == 1:
 	imgtab = ihdu[0].data.copy()
 else:
