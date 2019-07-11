@@ -15,6 +15,7 @@ Make sure to get the latest version by checking [changelog.md](https://github.co
 You can re-install or type the following under the orignally installed path to get the latest updates:
 ```bash
 git pull
+python setup.py install
 ```
 
 
