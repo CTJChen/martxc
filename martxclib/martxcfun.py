@@ -4,7 +4,7 @@ Functions for MSFC ART-XC
 from __future__ import print_function, division
 import numpy as np
 import sys
-
+import re
 
 def verboseprint(verbose):
 	'''
@@ -48,6 +48,7 @@ def parse_ds9(region):
     Will include astropy region pacakge or pyregion in the future.
     """
     # Skip blanks
+    coordinate_systems = ['fk5', 'fk4', 'icrs', 'galactic', 'wcs', 'physical', 'image', 'ecliptic', 'J2000']
     outputlist = []
     with open(region) as fp:
         line = fp.readline()

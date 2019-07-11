@@ -9,6 +9,7 @@ import numpy as np
 import astropy.io.fits as fits
 import argparse
 from scipy.interpolate import interp1d
+from scipy.interpolate import griddata as gd
 from astropy import wcs
 import astropy.coordinates as cd
 import astropy.units as u
@@ -31,13 +32,13 @@ parser = HelpfulParser(description=__doc__,
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 # Required arguments
-parser.add_argument('-arf', type=str, required=True, default='artxc.arf'
+parser.add_argument('-arf', type=str, required=True, default='art-xc_v0.0.arf',
 	help='Name of the ARF file.')
 
-parser.add_argument('-vig', type=str, required=True, default='artxc.arf'
+parser.add_argument('-vig', type=str, required=True, default='artxc_vignetting.fits',
 	help='Name of the Vignetting file.')
 
-parser.add_argument('-psf', type=str, required=True, default='artxc.arf'
+parser.add_argument('-psf', type=str, required=True, default='artxc_psf_eef.fits',
 	help='Name of the PSF file.')
 
 parser.add_argument('-out', type=str, required=True, default='example_output.arf',
@@ -74,15 +75,16 @@ parser.add_argument('-overwrite', type=bool, required=False, default=True,
 args = parser.parse_args()
 
 verbose = args.verbose
-
 vprint = verboseprint(verbose)
+overwrite = args.overwrite
 
 arf = args.arf
 out = args.out
+psf = args.psf
+vig = args.vig
 region = args.region
 offaxis = args.offaxis
 img = args.img
-eef = args.eef
 box = args.box
 
 if verbose:
@@ -136,7 +138,7 @@ vigfunc = interp1d(vig_emed, np.arange(len(vig_emed)),fill_value='extrapolate')
 
 
 if (region is not None) and (img is not None):
-	coordstr = parse_line(region)
+	coordstr = parse_ds9(region)
 	radec = cd.SkyCoord(coordstr[1][0] + ' ' + coordstr[1][1],frame = coordstr[0], unit=(u.hourangle, u.deg))  # in degree
 	radius = float(re.findall(r'\d+\.\d+', coordstr[1][-1])[0]) # in radius
 	'''
