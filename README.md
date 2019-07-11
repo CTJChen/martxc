@@ -28,7 +28,7 @@ The python scripts should be executable, you can add the martxc path to your sys
 ```bash
 export PATH=/PATH_TO_MARTXC/:$PATH
 ```
-You can then run the scripts like this -- the following command will display the help doc of martevt2img.py:
+After doing so, the following command will display the help doc of martevt2img.py:
 ```bash
 martevt2img.py -h
 ```
