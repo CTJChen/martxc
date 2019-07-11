@@ -7,10 +7,12 @@ import sys
 
 
 def verboseprint(verbose):
+	'''
+	Only print if verbose == True
+	'''
 	if verbose:
 		def vprint(*args):
-			# Print each argument separately so caller doesn't need to
-			# stuff everything to be printed into a single string
+			# Print each argument separately 
 			for arg in args:
 				print(arg)
 	else:
@@ -23,7 +25,7 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
 	'''
 	dependency-free progressbar by:
 	https://stackoverflow.com/users/1207193/eusoubrasileiro
-	found at
+	see this stackoverflow thread:
 	https://stackoverflow.com/questions/3160699/python-progress-bar
 	'''
 	count = len(it)
