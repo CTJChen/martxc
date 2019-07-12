@@ -3,9 +3,6 @@
 __doc__ = """
 Part of the MSFC ART-XC software package. This script computes the exposuremap
 for an arbitrary telescope with a circular field-of-view. \n
-Currently calculate on a box with a given RA/DEC range that can be specified.\n
-Since Eulerian distance is used instead of angular distance, the boxsize should
-be limited to several deg.
 """
 
 import sys
@@ -85,6 +82,10 @@ parser.add_argument('-attres', type=float, required=False,
 parser.add_argument('-time', type=float, required=False,
 	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
 
+parser.add_argument('-offaxis', type=bool, required=False, default=False,
+	help='If set as True, an additional fits image storing the exposure-time averaged off-axis \
+	angle values would be added to the exposure map.')
+
 parser.add_argument('-verbose', type=bool, required=False, default=True,
 	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
 
@@ -97,6 +98,7 @@ verbose = args.verbose
 
 vprint = verboseprint(verbose)
 overwrite = args.overwrite
+offaxis = args.offaxis
 att = args.att
 vig = args.vig
 img = args.img
@@ -258,11 +260,34 @@ else:
 	for aid in progressbar(range(len(newattra))):
 		pnt = cd.SkyCoord(newattra[aid],newattdec[aid],unit=(u.degree,u.degree))
 		dist = pnt.separation(cat_grid)
-		ix = np.where(pnt.separation(cat_grid).deg <= fovdeg)[0]
+		ix = np.where(dist.deg <= fovdeg)[0]
 		expmap[ix] += vigfunc(dist[ix].arcmin) * attres
 
-# header is an astropy.io.fits.Header object.  We can use it to create a new
-# PrimaryHDU and write it to a file.
-hdu = fits.PrimaryHDU(expmap.reshape(npixdec,npixra), header=header_out)
-# Save to FITS file
-hdu.writeto(out, overwrite=overwrite)
+
+
+if offaxis is True:
+	'''
+	This would calculate exposure time weighted off-axis angle at each pixel
+	'''
+	offaxistab = np.zeros(npixra * npixdec)
+
+	vprint('Make an additional table storing off-axis values')
+	for aid in progressbar(range(len(newattra))):
+		pnt = cd.SkyCoord(newattra[aid],newattdec[aid],unit=(u.degree,u.degree))
+		dist = pnt.separation(cat_grid)
+		ix = np.where(dist.deg <= fovdeg)[0]
+		# Add exposure-time normalized off-axis values, incrementally.
+		offaxistab[ix] += (dist[ix].arcmin * vigfunc(dist[ix].arcmin) * attres / expmap[ix])
+	hdulist = [fits.PrimaryHDU(expmap.reshape(npixdec,npixra), header=header_out)]
+	hdulist.append(fits.ImageHDU(offaxistab.reshape(npixdec,npixra), header=header_out))
+	explist = fits.HDUList(hdulist)
+	explist[0].name = 'expmap'
+	explist[1].name = 'offaxis'
+	explist[1].header.add_his
+	explist.writeto(out,overwrite=overwrite)
+else:
+	# header is an astropy.io.fits.Header object.  We can use it to create a new
+	# PrimaryHDU and write it to a file.
+	hdu = fits.PrimaryHDU(expmap.reshape(npixdec,npixra), header=header_out)
+	# Save to FITS file
+	hdu.writeto(out, overwrite=overwrite)
