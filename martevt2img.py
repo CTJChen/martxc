@@ -92,19 +92,27 @@ if (len(box) == 4) | (len(box) == 0):
 		ra2 = np.max(evttab['RA'])
 		dec1 = np.min(evttab['DEC'])
 		dec2 = np.max(evttab['DEC'])
-	npixra = np.ceil((ra2 - ra1) / (rasize / 3600.)).astype(int)
-	npixdec = np.ceil((dec2 - dec1) / (decsize / 3600.)).astype(int)
-	# define WCS
-	w = wcs.WCS(naxis=2)
-	w.wcs.crpix = [npixra / 2., npixdec / 2.]
-	w.wcs.cdelt = np.array([rasize / 3600., decsize / 3600.])
-	w.wcs.crval = [(ra1 + ra2) / 2., (dec1 + dec2) / 2.]
-	w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-	header_out = w.to_header()
 else:
 	parser.error(
 		'Must provide four radec values (e.g., \
 		-box ra1 ra2 dec1 dec2)')
+
+npixra = np.ceil((ra2 - ra1) / (rasize / 3600.)).astype(int)
+npixdec = np.ceil((dec2 - dec1) / (decsize / 3600.)).astype(int)
+
+rabins = np.linspace(0.5, float(npixra)+0.5, npixra+1, endpoint=True)
+decbins = np.linspace(0.5, float(npixdec)+0.5, npixdec+1, endpoint=True)
+
+
+# define WCS
+w = wcs.WCS(naxis=2)
+w.wcs.crpix = [npixra / 2., npixdec / 2.]
+w.wcs.cdelt = np.array([rasize / 3600., decsize / 3600.])
+w.wcs.crval = [(ra1 + ra2) / 2., (dec1 + dec2) / 2.]
+w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+w.wcs.cunit = ["deg", "deg"]
+header_out = w.to_header()
+
 
 vprint(
 	'ra = [' + str(np.round(ra1, 4)) + ', ' +
@@ -118,15 +126,19 @@ vprint(
 
 c = cd.SkyCoord(evttab['RA'],evttab['DEC'],unit=(u.degree,u.degree))
 rapix, decpix = w.world_to_pixel(c)
-img = np.zeros((npixdec,npixra))
+#img = np.zeros((npixdec,npixra))
 rapix = np.floor(rapix).astype(int)
 decpix = np.floor(decpix).astype(int)
-id_in = np.where((rapix <= npixra - 1) & (decpix <= npixdec -1))[0]
-rapix = rapix[id_in]
-decpix = decpix[id_in]
-for i in progressbar(range(len(rapix))):
-    img[decpix[i],rapix[i]] += 1
 
 
-hdu = fits.PrimaryHDU(img, header=header_out)
+# should include energy in the mask in the future.
+mask = np.where((rapix <= npixra - 1) & (decpix <= npixdec -1))[0]
+rapix = rapix[mask]
+decpix = decpix[mask]
+
+img, xx, yy = np.histogram2d(rapix, decpix, bins=[rabins, decbins])
+
+
+
+hdu = fits.PrimaryHDU(img.transpose(), header=header_out)
 hdu.writeto(out, overwrite=True)
