@@ -174,9 +174,6 @@ if img is not None:
 elif (len(args.box) == 4) | (len(args.box) == 0):
 	if len(args.box) == 4:
 		ra1, ra2, dec1, dec2 = args.box
-		# only crop out attitudes if a box is used.
-		atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
-				(atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
 	else:
 		box = None
 		ra1 = np.min(atttab['RA'])
@@ -194,6 +191,11 @@ elif (len(args.box) == 4) | (len(args.box) == 0):
 	header_out = w.to_header()
 else:
 	parser.error('Must provide four radec values (e.g., python test_args.py -box ra1 ra2 dec1 dec2)')
+
+
+# only crop out attitudes if a box is used.
+atttab = atttab[(atttab['RA'] >= ra1) & (atttab['RA'] <= ra2) & \
+		(atttab['DEC'] >= dec1) & (atttab['DEC'] <= dec2)]
 
 vprint(
 	'ra = [' + str(np.round(ra1, 4)) + ', ' +
