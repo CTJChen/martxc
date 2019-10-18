@@ -12,18 +12,12 @@ be limited to several deg.
 import sys
 import numpy as np
 import astropy.io.fits as fits
-import argparse
 from martxclib.martxcfun import *
 from astropy import wcs
 
 
-class HelpfulParser(argparse.ArgumentParser):
-	def error(self, message):
-		sys.stderr.write('error: %s\n' % message)
-		self.print_help()
-		sys.exit(2)
 
-parser = HelpfulParser(description=__doc__,
+parser = Parser(description=__doc__,
 	epilog="""Chien-Ting Chen <ct.chen@nasa.gov>""",
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 

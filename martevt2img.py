@@ -9,7 +9,6 @@ Currently only works with a simulated event list.
 import sys
 import numpy as np
 import astropy.io.fits as fits
-import argparse
 import matplotlib.pyplot as plt
 from astropy import wcs
 import astropy.coordinates as cd
@@ -17,17 +16,7 @@ import astropy.units as u
 from martxclib.martxcfun import *
 
 
-class HelpfulParser(argparse.ArgumentParser):
-	'''
-	Handling errors
-	'''
-	def error(self, message):
-		sys.stderr.write('error: %s\n' % message)
-		sys.stderr.write('run \"python martev2img.py -h\" for helps\n')
-		sys.exit(2)
-
-
-parser = HelpfulParser(
+parser = Parser(
 	description=__doc__,
 	epilog="""Chien-Ting Chen <ct.chen@nasa.gov>""",
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter)

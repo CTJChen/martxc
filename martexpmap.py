@@ -8,7 +8,6 @@ for an arbitrary telescope with a circular field-of-view. \n
 import sys
 import numpy as np
 import astropy.io.fits as fits
-import argparse
 #from tqdm import tqdm
 from scipy import spatial
 from scipy.interpolate import griddata as gd
@@ -18,18 +17,10 @@ import astropy.coordinates as cd
 import astropy.units as u
 from martxclib.martxcfun import *
 from martxclib.martxcfits import rebinatt
-class HelpfulParser(argparse.ArgumentParser):
-	'''
-	Handling errors
-	'''
-	def error(self, message):
-		sys.stderr.write('error: %s\n' % message)
-		sys.stderr.write('run \"python martexpmap.py -h\" for helps\n')
-		sys.exit(2)
 
 
 
-parser = HelpfulParser(description=__doc__,
+parser = Parser(description=__doc__,
 	epilog="""Chien-Ting Chen <ct.chen@nasa.gov>""",
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -87,7 +78,7 @@ parser.add_argument('-offaxis', type=bool, required=False, default=False,
 	angle values would be added to the exposure map.')
 
 parser.add_argument('-verbose', type=bool, required=False, default=True,
-	help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
+    help='set for verbosity')
 
 parser.add_argument('-overwrite', type=bool, required=False, default=True,
 	help='Overwrite if set as True.')

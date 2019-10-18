@@ -5,6 +5,7 @@ from __future__ import print_function, division
 import numpy as np
 import sys
 import re
+import argparse
 
 def verboseprint(verbose):
 	'''
@@ -60,3 +61,12 @@ def parse_ds9(region):
                 print('Reading region ' + line.strip())
                 outputlist.append(line.strip()[7:].split(','))
         return outputlist
+
+class Parser(argparse.ArgumentParser):
+    '''
+    Handling errors
+    '''
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        sys.stderr.write('use the -h option\" for helps\n')
+        sys.exit(2)

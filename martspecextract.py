@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __doc__ = """
-Part of the MSFC ART-XC software package. This script applies
-aperture and off-axis corrections based on the PSF and Vignetting functions
+Part of the MSFC ART-XC software package. 
+This script extract spectra from an event list at the give locations.
 """
 import sys
 import numpy as np
