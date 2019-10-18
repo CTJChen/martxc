@@ -15,7 +15,7 @@ setup(name='martxc',
       license='MIT',
       description='A collection of ART-XC data analysis and reduction scripts',
       packages=['martxclib'],
-      scripts=['martexpmap.py', 'martevt2img.py', \
+      scripts=['martexpmap.py', 'martevt2img.py', 'martspecextract.py',\
       'martpoisson.py', 'martmkarf.py', 'martfilter.py', 'martpha2pi.py'],
       long_description=long_description,
       install_requires=[
