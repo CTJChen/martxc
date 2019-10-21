@@ -49,7 +49,8 @@ def parse_ds9(region):
     Will include astropy region pacakge or pyregion in the future.
     """
     # Skip blanks
-    coordinate_systems = ['fk5', 'fk4', 'icrs', 'galactic', 'wcs', 'physical', 'image', 'ecliptic', 'J2000']
+    coordinate_systems = ['fk5', 'fk4', 'icrs', 'galactic', 'wcs', 
+    'physical', 'image', 'ecliptic', 'J2000']
     outputlist = []
     with open(region) as fp:
         line = fp.readline()
@@ -70,3 +71,17 @@ class Parser(argparse.ArgumentParser):
         sys.stderr.write('error: %s\n' % message)
         sys.stderr.write('use the -h option\" for helps\n')
         sys.exit(2)
+
+
+def create_circular_mask(npixy, npixx, center=None, radius=None):
+	#  use the middle of the image
+	if center is None:
+		center = [int(npixx / 2), int(npixy / 2)]
+	#  use the smallest distance between the center and image walls
+	if radius is None: 
+		radius = min(center[0], center[1], npixx - center[0], npixy - center[1])
+
+	Y, X = np.ogrid[:npixy, :npixx]
+	dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+	mask = dist_from_center <= radius
+	return mask
