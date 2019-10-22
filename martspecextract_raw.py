@@ -17,6 +17,8 @@ from astropy import wcs
 import astropy.coordinates as cd
 import astropy.units as u
 from martxclib.martxcfun import *
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 from astropy.table import Table as tab
 
 #caldb = check_caldb()
@@ -60,18 +62,21 @@ parser.add_argument('-psf', type=str, required=False,
 #default='artxc_psf_eef.fits',
 
 # Global optinal arguments
-parser.add_argument('-verbose', type=bool, required=False, default=True,
+parser.add_argument('-verbose', type=bool, required=False, default=False,
 	help='Seeting verbosity.')
 
-parser.add_argument('-overwrite', type=bool, required=False, default=True,
+parser.add_argument('-overwrite', type=bool, required=False, default=False,
 	help='Overwrite if set as True.')
 
+parser.add_argument('-savepdf', type=bool, required=False, default=False,
+	help='savepdf if set as True.')
 
 args = parser.parse_args()
 
 verbose = args.verbose
 vprint = verboseprint(verbose)
 overwrite = args.overwrite
+savepdf = args.savepdf
 
 evt = args.evt
 switch = args.switch
@@ -80,7 +85,7 @@ out = args.out
 psf = args.psf
 vig = args.vig
 rmf = args.rmf
-bkgout = out[:-4] + 'bkg.fits' 
+bkgout = out[:-3] + 'bkg.fits' 
 
 
 evthdu = fits.open(evt)
@@ -135,6 +140,42 @@ bkg_id = int(np.random.uniform(0, len(np.where(bmask_inner * bmask_outer)[0])))
 bkg_positionx = np.where(bmask_inner * bmask_outer)[0][bkg_id]
 bkg_positiony = np.where(bmask_inner * bmask_outer)[1][bkg_id]
 bmask = create_circular_mask(48,48,radius=5,center=[bkg_positionx,bkg_positiony])
+
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+cs = ax.imshow(img,  norm=LogNorm())
+ax.set_xlim(0,48)
+ax.set_ylim(0,48)
+plt.minorticks_on()
+cbar = fig.colorbar(cs)
+plt.savefig(out + '.pdf',format='pdf',bbox_inches='tight')
+
+
+mimg = img.copy()
+mimg[~(imask)] = 0
+fig = plt.figure()
+ax = fig.add_subplot(111)
+cs = ax.imshow(mimg,  norm=LogNorm())
+ax.set_xlim(0,48)
+ax.set_ylim(0,48)
+cbar = fig.colorbar(cs)
+plt.minorticks_on()
+plt.savefig(out + '.src.pdf',format='pdf',bbox_inches='tight')
+
+
+
+mimg = img.copy()
+mimg[~(bmask)] = 0
+fig = plt.figure()
+ax = fig.add_subplot(111)
+cs = ax.imshow(mimg,  norm=LogNorm())
+ax.set_xlim(0,48)
+ax.set_ylim(0,48)
+plt.minorticks_on()
+cbar = fig.colorbar(cs)
+plt.savefig(out + '.bkg.pdf',format='pdf',bbox_inches='tight')
+
 
 # off-axis angle in arcmin, assuming the optical axis center is at the center of the detector.
 offaxis = np.sqrt((positionx - (npixx-1) * 0.5) ** 2 + (positiony - (npixx-1) * 0.5) ** 2 ) * pixscale
@@ -232,8 +273,10 @@ if switch:
 	arfhdu[0].header.add_history('Applied aperture and off-axis corrections using martmkarf.py')
 	arfhdu.writeto(arfout,overwrite=overwrite)
 else:
+	print('Not calculating off-axis arf')
 	arfout = arf
-
+	arfhdu = fits.open(arf)
+	arftab = arfhdu[1].data.copy()
 
 # Now extrat the source and background spectra
 
