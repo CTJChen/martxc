@@ -21,7 +21,8 @@ python setup.py install
 
 ## Instructions and list of scripts
 
-The current version works with "level 2" event lists generated with [SIXTE](https://www.sternwarte.uni-erlangen.de/research/sixte/). 
+Most of the code works with "level 2" event lists generated with [SIXTE](https://www.sternwarte.uni-erlangen.de/research/sixte/). Some scripts for "level 2" ART-XC flight data re being tested.
+
 
 martevt2img.py - converts an event list fits file to an image with designated RA and DEC pixel size and optional RA/DEC range parameters. 
 
@@ -30,6 +31,8 @@ martexpmap.py - computes an exposure map based on an attitude file with designat
 martmkarf.py - generate aperture and off-axis corrected auxillary response file.
 
 martpoisson.py - a simplified script for adding background noise to a fits image. Requires prior knowledge on the background count rate per pixel (not a part of martxc).
+
+martspecextract_raw.py - This script works only with the ART-XC PV phase data in its detector coordinates (no WCS support). It searches for the pixel with counts at least 100x the background and extract its spectrum and image in a 5 pixel radius circle. Background spectrum and image on a random non-source position is also extracted. Off-axis ARF correction is optional.
 
 The python scripts should be executable, you can add the martxc path to your system PATH environment if necessary.
 ```bash
