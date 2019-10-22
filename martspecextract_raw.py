@@ -239,8 +239,8 @@ else:
 
 
 
-dspec = evttab[np.intersect1d(detcoor_id, np.where(imask.flatten())[0])]
-dbkg = evttab[np.intersect1d(detcoor_id, np.where(bmask.flatten())[0])]
+dspec = evttab[np.where(np.in1d(detcoor_id, np.where(imask.flatten())[0]))[0]]
+dbkg = evttab[np.where(np.in1d(detcoor_id, np.where(bmask.flatten())[0]))[0]]
 # spec_grp = dspec.groupby('PI')
 # bkg_grp = dbkg.groupby('PI')
 # spec = spec_grp['RAW_X'].count().values
