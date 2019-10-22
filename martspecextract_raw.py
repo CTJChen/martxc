@@ -19,6 +19,8 @@ import astropy.units as u
 from martxclib.martxcfun import *
 from astropy.table import Table as tab
 
+#caldb = check_caldb()
+
 
 # ART-XC has 48 by 48 pixels
 # with a pixel angular size of 0.724 arcmin
@@ -83,6 +85,10 @@ bkgout = out[:-4] + 'bkg.fits'
 
 evthdu = fits.open(evt)
 evttab = tab(evthdu[1].data)
+evttab = evttab[(evttab['PI']>=0) & (evttab['PI'] <= 511)]
+
+expvalue = evthdu[0].header['EXPOSURE']
+
 # flattend index of the detector pixels each event
 detcoor_id = evttab['RAW_X'].quantity.value * npixx + evttab['RAW_Y'].quantity.value
 
@@ -90,7 +96,7 @@ detcoor_id = evttab['RAW_X'].quantity.value * npixx + evttab['RAW_Y'].quantity.v
 dmask = create_circular_mask(48,48,radius=24)
 
 
-img, xx, yy = np.histogram2d(evthdu['RAW_X'], evthdu['RAW_Y'], bins=[np.arange(npixx + 1), np.arange(npixy +1)])
+img, xx, yy = np.histogram2d(evttab['RAW_X'], evttab['RAW_Y'], bins=[np.arange(npixx + 1), np.arange(npixy +1)])
 if np.min(img) == 0:
     ctmin = 1
 else:
@@ -106,17 +112,17 @@ if ctmax / ctmin <= 100:
 else:
 	'''
 	'''
-	positionx = np.where(img == ctmax)[0][0]
-	positiony = np.where(img == ctmax)[1][0]
+	positiony = np.where(img == ctmax)[0][0]
+	positionx = np.where(img == ctmax)[1][0]
 	# avoid extracting region being outside the detector
-	if (positionx - 5 <= 0):
-		positionx += 5 - positionx
-	elif (47 - positionx <= 5):
-		positionx -= 47 - positionx
 	if (positiony - 5 <= 0):
-	    positiony += 5 - positiony
+		positiony += 5 - positiony
 	elif (47 - positiony <= 5):
-	    positiony -= 47 - positiony
+		positiony -= 47 - positiony
+	if (positionx - 5 <= 0):
+	    positionx += 5 - positionx
+	elif (47 - positionx <= 5):
+	    positionx -= 47 - positionx
 
 
 imask = create_circular_mask(48,48,radius=5,center=[positionx,positiony]) * dmask
@@ -132,6 +138,7 @@ bmask = create_circular_mask(48,48,radius=5,center=[bkg_positionx,bkg_positiony]
 
 # off-axis angle in arcmin, assuming the optical axis center is at the center of the detector.
 offaxis = np.sqrt((positionx - (npixx-1) * 0.5) ** 2 + (positiony - (npixx-1) * 0.5) ** 2 ) * pixscale
+regradius = 5. * pixscale
 
 if verbose:
 	vprint('arguments passed:')
@@ -183,8 +190,8 @@ if switch:
 	# Aperture correction
 	# starting at unity, compute if radius is not None
 	arfcorr_aper = np.zeros(len(arftab),dtype=float) + 1. 
-	if radius is not None:
-		radius_arcmin = radius / 60.
+	if regradius is not None:
+		radius_arcmin = regradius
 		for i in range(len(psfen)):
 		    '''
 		    For a given off-axis angle, find the EEF
@@ -230,29 +237,37 @@ else:
 
 # Now extrat the source and background spectra
 
-arthdu = fits.open(arfout)
-arftab = tab(arthdu[1].data)
-out = 'artm' + ntele + '_sr.pi'
-bkgout = 'artm' + ntele + '_bk.pi'
-art1 = tab(arthdu[1].data).to_pandas()
-art1 = art1[art1.PI.between(0, 511)]
 
 
 dspec = evttab[np.intersect1d(detcoor_id, np.where(imask.flatten())[0])]
 dbkg = evttab[np.intersect1d(detcoor_id, np.where(bmask.flatten())[0])]
-spec_grp = dspec.groupby('PI')
-bkg_grp = dbkg.groupby('PI')
-spec = spec_grp['RAW_X'].count().values
-bkg = bkg_grp['RAW_X'].count().values
+# spec_grp = dspec.groupby('PI')
+# bkg_grp = dbkg.groupby('PI')
+# spec = spec_grp['RAW_X'].count().values
+# bkg = bkg_grp['RAW_X'].count().values
+
+spec_grp = dspec.group_by('PI')
+bkg_grp = dbkg.group_by('PI')
+spec = spec_grp.groups.aggregate(len)['RAW_X'].quantity.value
+bkg = bkg_grp.groups.aggregate(len)['RAW_X'].quantity.value
+pi_spec = spec_grp.groups.aggregate(len)['PI'].quantity.value
+pi_bkg = bkg_grp.groups.aggregate(len)['PI'].quantity.value
+
+
 
 dfct = tab()
-dfct['CHANNEL'] = np.arange(len(arf1))
-dfct['COUNTS'] = np.zeros(len(arf1))
-dfct['COUNTS'][spec_grp['RAW_X'].count().index.values] = spec
+dfct['CHANNEL'] = np.arange(len(arftab))
+dfct['COUNTS'] = np.zeros(len(arftab))
+
+dfct['COUNTS'][pi_spec] = spec
+print('here')
+
 dfbk = tab()
-dfbk['CHANNEL'] = np.arange(len(arf1))
-dfbk['COUNTS'] = np.zeros(len(arf1))
-dfbk['COUNTS'][bkg_grp['RAW_X'].count().index.values]= bkg
+dfbk['CHANNEL'] = np.arange(len(arftab))
+dfbk['COUNTS'] = np.zeros(len(arftab))
+dfbk['COUNTS'][pi_bkg] = bkg
+
+
 
 
 ctlist = [
@@ -271,16 +286,17 @@ ctlist[0].header['TELESCOP'] = 'SRG'
 ctlist[0].header['INSTRUME'] = 'ART-XC'
 ctlist[0].header['DETNAM'] = 'M1'
 ctlist[0].header['FILTER'] = 'NONE'
+
 ctlist[1].header['TELESCOP'] = 'SRG'
 ctlist[1].header['INSTRUME'] = 'ART-XC'
 ctlist[1].header['DETNAM'] = 'M1'
-ctlist[1].header['EXPOSURE'] = 88890
+ctlist[1].header['EXPOSURE'] = expvalue
 ctlist[1].header['FILTER'] = 'NONE'
 ctlist[1].header['AREASCAL'] = 1
 ctlist[1].header['BACKSCAL'] = 1
 ctlist[1].header['BACKFILE'] = bkgout
 ctlist[1].header['RESPFILE'] = rmf
-ctlist[1].header['ANCRFILE'] = arf
+ctlist[1].header['ANCRFILE'] = arfout
 ctlist[1].header['CHANTYPE'] = 'PI'
 ctlist[1].header['EXTNAME'] = 'SPECTRUM'
 ctlist[1].header['HDUCLASS'] = 'OGIP'
@@ -296,16 +312,17 @@ bllist[0].header['TELESCOP'] = 'SRG'
 bllist[0].header['INSTRUME'] = 'ART-XC'
 bllist[0].header['DETNAM'] = 'M1'
 bllist[0].header['FILTER'] = 'NONE'
+
 bllist[1].header['TELESCOP'] = 'SRG'
 bllist[1].header['INSTRUME'] = 'ART-XC'
 bllist[1].header['DETNAM'] = 'M1'
-bllist[1].header['EXPOSURE'] = 88890
+bllist[1].header['EXPOSURE'] = expvalue
 bllist[1].header['FILTER'] = 'NONE'
 bllist[1].header['AREASCAL'] = 1
 bllist[1].header['BACKSCAL'] = 1
 bllist[1].header['BACKFILE'] = bkgout
 bllist[1].header['RESPFILE'] = rmf
-bllist[1].header['ANCRFILE'] = arf
+bllist[1].header['ANCRFILE'] = arfout
 bllist[1].header['CHANTYPE'] = 'PI'
 bllist[1].header['EXTNAME'] = 'SPECTRUM'
 bllist[1].header['HDUCLASS'] = 'OGIP'
@@ -317,8 +334,8 @@ bllist[1].header['CORRFILE'] = 'none'
 bllist[1].header['CORRSCAL'] = 1
 
 
-fits.HDUList(ctlist).writeto(fpath + out ,overwrite=True)
-fits.HDUList(bllist).writeto(fpath + bkgout,overwrite=True)    
+fits.HDUList(ctlist).writeto(out ,overwrite=overwrite)
+fits.HDUList(bllist).writeto(bkgout,overwrite=overwrite)    
 print('saved ' + out + ', and ', bkgout)
 
 

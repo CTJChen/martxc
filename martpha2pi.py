@@ -28,14 +28,20 @@ def get_pi(energy):
         return pivalue
         
 
-def add_column(hdu, coldata, colname, formatstr, unit):
+def add_column(hdu, coldata, colname, formatstr, unit, overwrite):
     """
     Add a column to the given hdu
     coldata should be a numpy array
     Return:
         A fits hdu object with the new column.
-    """
+    """    
     table = hdu.data
+    if colname in table.columns.names and overwrite:
+        print('deleting existing PI')
+        table.columns.del_col(colname)
+    elif colname in table.columns.names:
+        sys.exit('PI column already exisits. Please set overwrite=True')
+
     col = fits.Column(name=colname, format=formatstr, unit=unit, array=coldata)
     # NOTE: append the new time column to the *last*!
     # Otherwise the TLMIN??/TLMAX?? keyword pairs, which record the
@@ -99,7 +105,7 @@ piarr = get_pi(arthdu[1].data['ENERGY'])
 
 evthead = arthdu[1].header
 
-arthdu[1] = add_column(arthdu[1], piarr, 'PI', 'I', '')
+arthdu[1] = add_column(arthdu[1], piarr, 'PI', 'I', '', overwrite)
 arthdu.writeto(out, overwrite=overwrite) 
 print('wrote PI arrays into ' + out)
 

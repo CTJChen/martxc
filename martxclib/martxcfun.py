@@ -6,6 +6,7 @@ import numpy as np
 import sys
 import re
 import argparse
+import os
 
 def verboseprint(verbose):
 	'''
@@ -85,3 +86,12 @@ def create_circular_mask(npixy, npixx, center=None, radius=None):
 	dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
 	mask = dist_from_center <= radius
 	return mask
+
+def check_caldb():
+	try:
+		caldb = os.environ['CALDB']
+		return caldb
+	except:
+		sys.exit('$CALDB not found, aborting...')
+
+
