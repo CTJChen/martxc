@@ -33,11 +33,20 @@ parser.add_argument(
     Example: -gti TSTART TSTOP""")
 
 parser.add_argument(
+    '-energy', nargs='+', type=float, 
+    help="""enmin and enmax for selecting the events. \n
+    Example: -energy enmin enmax""")
+
+
+parser.add_argument(
     '-nt', type=int, default=1, 
     help="""Telescope number.""")
 
 parser.add_argument('-verbose', type=bool, required=False, default=True,
     help='Add a time constraint to the attitude file. Only the periods within the specified time would be considered.')
+
+parser.add_argument('-overwrite', type=bool, required=False, default=True,
+    help='Overwrite if set as True.')
 
 args = parser.parse_args()
 
@@ -50,6 +59,10 @@ evt = args.evt
 out = args.out
 if args.gti is not None:
     tstart, tstop = args.gti
+if args.energy is not None:
+    enmin, enmax = args.energy
+overwrite = args.overwrite
+    
 ntele = str(args.nt)
 arthdu = fits.open(evt)
 evt = Table(arthdu[1].data)
@@ -62,6 +75,11 @@ if args.gti is not None:
 else:
     tstop = evt['TIME'][-1]
     tstart = evt['TIME'][0]
+
+if args.energy is not None:
+    ix = np.where((evt['ENERGY'] <= enmax) & (evt['ENERGY']>= enmin))[0]
+    evt = evt[ix]
+
 igoodevt = (evt['RAW_X'] >= 0) & (evt['RAW_X'] <= 47) & \
 (evt['RAW_Y'] >= 0) & (evt['RAW_Y'] <= 47) & \
 (evt['PHA_BOT'] >= 0.) & (evt['PHA_BOT'] <= 1023)
@@ -80,4 +98,4 @@ for i in [0,1]:
     arthdu[i].header['EXPOSURE'] = tstop - tstart
     arthdu[i].header['LIVETIME'] = tstop - tstart
 arthdu[1].data = fits.table_to_hdu(evt).data
-arthdu.writeto(out, overwrite=True)
+arthdu.writeto(out, overwrite=overwrite)

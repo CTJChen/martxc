@@ -41,15 +41,15 @@ parser.add_argument('-evt', type=str, required=True,
 parser.add_argument('-out', type=str, required=True,
 	help='Name of the output file.')
 
+parser.add_argument('-rmf', type=str, required=True, 
+	help='Name of the RMF file.')
+#default='art-xc_v0.0.arf',
 
 # optional arguments
-parser.add_argument('-arf', type=str, required=True, 
+parser.add_argument('-arf', type=str, required=False, 
 	help='Name of the ARF file.')
 #default='art-xc_v0.0.arf',
 
-parser.add_argument('-rmf', type=str, required=True, 
-	help='Name of the ARF file.')
-#default='art-xc_v0.0.arf',
 
 parser.add_argument('-switch', type=bool, required=False, default=False,
 	help='Swith on for applying off-axis ARF correction')
