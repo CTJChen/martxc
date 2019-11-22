@@ -71,7 +71,7 @@ parser.add_argument('-out', type=str, required=True,
 
 # optional arguments
 parser.add_argument(
-    '-xy', nargs=+, type=float, required=False, defult=[],
+    '-xy', nargs='+', type=float, required=False, default=[],
     help="""raw_x and raw_y coordinates""")
 
 # Global optional arguments
@@ -186,7 +186,7 @@ eef = interp1d(xdata, ydata,fill_value='extrapolate')
 eefarr = eef(np.linspace(0,20,1000))
 xarr =  np.linspace(0,20,1000)
 hpd = np.round(xarr[np.argmin(np.abs(eefarr - 0.5))] * pixscale, 4)
-print(evt + 'HPD =' + str(hpd) + ' arcmin')
+print(evt + ' HPD = ' + str(hpd) + ' arcmin')
 
 if savepdf:
     '''
