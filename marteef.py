@@ -69,7 +69,10 @@ parser.add_argument('-evt', type=str, required=True,
 parser.add_argument('-out', type=str, required=True,
     help='Name of the output file.')
 
-
+# optional arguments
+parser.add_argument(
+    '-xy', nargs=+, type=float, required=False, defult=[],
+    help="""raw_x and raw_y coordinates""")
 
 # Global optional arguments
 parser.add_argument('-verbose', type=bool, required=False, default=False,
@@ -90,6 +93,7 @@ savepdf = args.savepdf
 
 evt = args.evt
 out = args.out
+xy = args.xy
 
 evthdu = fits.open(evt, ignore_missing_end=True)
 evttab = tab(evthdu[1].data)
@@ -101,12 +105,20 @@ dmask = create_circular_mask(48,48,radius=24)
 
 
 img, xx, yy = np.histogram2d(evttab['RAW_X'], evttab['RAW_Y'], bins=[np.arange(npixx + 1), np.arange(npixy +1)])
+
 if np.min(img) == 0:
     ctmin = 1
 else:
     ctmin = np.min(img)
 ctmax = np.max(img)
-if ctmax / ctmin <= 100:
+
+if len(xy) > 0:
+    '''
+    use raw_x raw_y from arguments if possible
+    '''
+    positionx = xy[0]
+    positiony = xy[1]
+elif ctmax / ctmin <= 100:
     '''
     if the highest count pixel has no more than 100 times more counts than the lowest cont pixel,
     assuming everything is a background and extrat region is set at the center of the FOV
