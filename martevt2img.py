@@ -28,8 +28,13 @@ parser = Parser(
 
 # Required arguments
 parser.add_argument(
-	'-evt', type=str, required=True,
+	'-evt', type=str, required=False, default=None,
 	help='Name of the event file.')
+
+parser.add_argument(
+	'-evtlist', type=str, required=False, default=None,
+	help='Name of a text file with multiple event files in it.')
+
 
 parser.add_argument(
 	'-out', type=str, required=True, default='expmap.fits',
@@ -74,14 +79,43 @@ vprint = verboseprint(verbose)
 overwrite = args.overwrite
 
 evt = args.evt
+evtlist = args.evtlist
+
+if evt is None and evtlist is None:
+        parser.error("You must provide either an event file or a list of event files...")
+
 out = args.out
 rasize = args.rasize
 decsize = args.decsize
 box = args.box
 raw = args.raw
 
-evttab = fits.getdata(evt)
+if evt is not None:
+        evttab = fits.getdata(evt)
 
+
+        
+if evtlist is not None:
+        master_evttab = None
+        i=0
+        evtfiles = open(evtlist,'r').readlines()
+        for this_evtfile in evtfiles:
+                print(this_evtfile)
+                this_evtdata = fits.getdata(this_evtfile.rstrip())
+                if i==0:
+                        master_evttab = this_evtdata
+                else:
+                        nrows_master = master_evttab.shape[0]
+                        nrows_new = this_evtdata.shape[0]
+                        nrows = nrows_master + nrows_new
+                        this_hdu = fits.BinTableHDU.from_columns(master_evttab.columns, nrows=nrows)
+                        for colname in master_evttab.columns.names:
+                                this_hdu.data[colname][nrows_master:] = this_evtdata[colname]
+                        master_evttab = this_hdu.data
+                        print(np.shape(master_evttab))
+                i+=1
+        evttab = master_evttab
+        
 if raw:
 	img, xx, yy = np.histogram2d(evttab['RAW_X'], evttab['RAW_Y'], bins=[np.arange(npixx + 1), np.arange(npixy +1)])
 	hdu = fits.PrimaryHDU(img.transpose())
