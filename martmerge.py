@@ -76,13 +76,13 @@ if evtlist is not None:
     for key in hdum[0].header.keys():keylist.append(key)
     if not 'HISTORY' in keylist:
         vprint('No history in the primary HDU')
-        hdum[0].header['HISTORY'] = 'Initil event list ' + fname_m
+        hdum[0].header['HISTORY'] = 'Initializing with ' + fname_m
     for i in np.arange(len(evtfiles) - 1) + 1:
         evta = evtfiles[i].strip()
         fname_a = os.path.basename(evta)
         for card in hdum[0].header['HISTORY']:
             if fname_a in card:
-                print('no merging needed, evta has been merged before.')
+                print('no merging needed, ' + fname_a + ' has been merged before.')
                 sys.exit(2)
         hdua = fits.open(evta)
         tabm = tab(hdum[1].data)
