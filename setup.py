@@ -21,6 +21,6 @@ setup(name='martxc',
       install_requires=[
           "scipy",
           "numpy",
-          "astropy",
+          "astropy>=3.1",
       ],
       )
