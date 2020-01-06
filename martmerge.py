@@ -57,7 +57,7 @@ args = parser.parse_args()
 evtm = args.evtm
 evta = args.evta
 evtlist = args.evtlist
-
+force = args.force
 out = args.out
 if out is None:
     out = evtm
@@ -70,7 +70,7 @@ if evtlist is not None:
     i = 0
     evtfiles = open(evtlist,'r').readlines()
     evtm = evtfiles[i].strip()
-    fname_m = os.path.basename(evtm)
+    fname_m = os.path.abspath(evtm).split('/')[-2] + '/' + os.path.abspath(evtm).split('/')[-1]
     hdum = fits.open(evtm)
     keylist = []
     for key in hdum[0].header.keys():keylist.append(key)
@@ -79,11 +79,11 @@ if evtlist is not None:
         hdum[0].header['HISTORY'] = 'Initializing with ' + fname_m
     for i in np.arange(len(evtfiles) - 1) + 1:
         evta = evtfiles[i].strip()
-        fname_a = os.path.basename(evta)
+        fname_a = os.path.abspath(evta).split('/')[-2] + '/' + os.path.abspath(evta).split('/')[-1]
+
         for card in hdum[0].header['HISTORY']:
             if fname_a in card:
                 print('no merging needed, ' + fname_a + ' has been merged before.')
-                sys.exit(2)
         hdua = fits.open(evta)
         tabm = tab(hdum[1].data)
         taba = tab(hdua[1].data)
@@ -102,7 +102,6 @@ if evtlist is not None:
         else:
             # something is wrong, sort the output 
             sys.stderr.write('error: The time interval of ' + fname_a + ' is already part of evtm, stopping now')
-            sys.exit(2)
         hdum[1].data = fits.table_to_hdu(newtab).data
         tabm = tab(hdum[3].data)
         taba = tab(hdua[3].data)
@@ -120,8 +119,8 @@ if evtlist is not None:
         hdum[0].header['HISTORY'] = 'Appended ' + fname_a
     hdum.writeto(out, overwrite=overwrite)
 else:
-    fname_m = os.path.basename(evtm)
-    fname_a = os.path.basename(evta)
+    fname_m = os.path.abspath(evtm).split('/')[-2] + '/' + os.path.abspath(evtm).split('/')[-1]
+    fname_a = os.path.abspath(evta).split('/')[-2] + '/' + os.path.abspath(evta).split('/')[-1]
     hdum = fits.open(evtm)
     hdua = fits.open(evta)
     keylist = []
