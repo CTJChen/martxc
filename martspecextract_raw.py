@@ -4,10 +4,10 @@ __doc__ = """
 Part of the MSFC ART-XC software package. 
 This is a script for internal useage only.
 Essentially, it searches for the location of the brightest object
-in the FOV,
-then extract the spectrum at the given position.
-Off-axis ARF (PSF and Vignetting corrected) can also be extracted as an option.
+in the FOV, then extract the spectrum at that position using a 5 pixel radius.
+No off-axis ARF, PSF, and vignetting corrections are applied here. 
 """
+
 import sys
 import numpy as np
 import astropy.io.fits as fits
@@ -17,10 +17,9 @@ from astropy import wcs
 import astropy.coordinates as cd
 import astropy.units as u
 from martxclib.martxcfun import *
-import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from astropy.table import Table as tab
-
+from matplotlib import pyplot as plt
 #caldb = check_caldb()
 
 
@@ -50,7 +49,6 @@ parser.add_argument('-arf', type=str, required=False,
 	help='Name of the ARF file.')
 #default='art-xc_v0.0.arf',
 
-
 parser.add_argument('-switch', type=bool, required=False, default=False,
 	help='Swith on for applying off-axis ARF correction')
 
@@ -59,7 +57,17 @@ parser.add_argument('-vig', type=str, required=False,
 #default='artxc_vignetting.fits',
 parser.add_argument('-psf', type=str, required=False, 
 	help='Name of the PSF file.')
-#default='artxc_psf_eef.fits',
+
+parser.add_argument(
+	'-box', nargs='+', type=float, default=[],
+	help="""list of raw_x, raw_y specifying the 4 corners of the box.
+	Example: -box x1 x2 y1 y2""")
+
+
+parser.add_argument(
+	'-bbox', nargs='+', type=float, default=[],
+	help="""list of raw_x, raw_y specifying the 4 corners of the background box.
+	Example: -box x1 x2 y1 y2""")
 
 # Global optinal arguments
 parser.add_argument('-verbose', type=bool, required=False, default=False,
@@ -85,19 +93,23 @@ out = args.out
 psf = args.psf
 vig = args.vig
 rmf = args.rmf
-bkgout = out[:-3] + 'bkg.fits' 
+box = args.box
+bbox = args.bbox
+bkgout = out[:-4] + 'bkg.fits' 
 
 
 evthdu = fits.open(evt)
 evttab = tab(evthdu[1].data)
+# kick out events with weird PI (should've been done with martfilter 
+# already, but just in case)
 evttab = evttab[(evttab['PI']>=0) & (evttab['PI'] <= 511)]
 
 expvalue = evthdu[0].header['EXPOSURE']
 
-# flattend index of the detector pixels each event
+# flattend index of the detector pixel coordinate of each event
 detcoor_id = evttab['RAW_X'].quantity.value * npixx + evttab['RAW_Y'].quantity.value
 
-
+# detector mask
 dmask = create_circular_mask(48,48,radius=24)
 
 
@@ -130,18 +142,30 @@ else:
 	    positionx -= 47 - positionx
 
 
-imask = create_circular_mask(48,48,radius=5,center=[positionx,positiony]) * dmask
-bmask_inner = np.invert(create_circular_mask(48,48,radius=10,center=[positionx,positiony]))
-bmask_outer = create_circular_mask(48,48,radius=19)
-# background would be extrated away from the detector boundary and the source
-bmask = bmask_inner * bmask_outer
-bkg_len = len(np.where(bmask_inner * bmask_outer)[0])
-bkg_id = int(np.random.uniform(0, len(np.where(bmask_inner * bmask_outer)[0])))
-bkg_positionx = np.where(bmask_inner * bmask_outer)[0][bkg_id]
-bkg_positiony = np.where(bmask_inner * bmask_outer)[1][bkg_id]
-bmask = create_circular_mask(48,48,radius=5,center=[bkg_positionx,bkg_positiony])
 
+if len(box) == 4:
+	imask = create_box(48,48,box) * dmask
+else:
+	imask = create_circular_mask(48,48,radius=5,center=[positionx,positiony]) * dmask
 
+backscal_src = float(np.sum(imask)) / np.sum(dmask)
+
+if len(bbox) == 4:
+	bmask = create_box(48,48,bbox) * dmask
+else:	
+	bmask_inner = np.invert(create_circular_mask(48,48,radius=10,center=[positionx,positiony]))
+	bmask_outer = create_circular_mask(48,48,radius=19)
+	# background would be extrated away from the detector boundary and the source
+	bmask = bmask_inner * bmask_outer
+	bkg_len = len(np.where(bmask_inner * bmask_outer)[0])
+	bkg_id = int(np.random.uniform(0, len(np.where(bmask_inner * bmask_outer)[0])))
+	bkg_positionx = np.where(bmask_inner * bmask_outer)[0][bkg_id]
+	bkg_positiony = np.where(bmask_inner * bmask_outer)[1][bkg_id]
+	bmask = create_circular_mask(48,48,radius=5,center=[bkg_positionx,bkg_positiony])
+
+backscal_bkg = float(np.sum(bmask))/ np.sum(dmask)
+
+areascal_bkg = float(np.sum(imask)/np.sum(bmask))
 fig = plt.figure()
 ax = fig.add_subplot(111)
 cs = ax.imshow(img,  norm=LogNorm())
@@ -336,7 +360,7 @@ ctlist[1].header['DETNAM'] = 'M1'
 ctlist[1].header['EXPOSURE'] = expvalue
 ctlist[1].header['FILTER'] = 'NONE'
 ctlist[1].header['AREASCAL'] = 1
-ctlist[1].header['BACKSCAL'] = 1
+ctlist[1].header['BACKSCAL'] = backscal_src
 ctlist[1].header['BACKFILE'] = bkgout
 ctlist[1].header['RESPFILE'] = rmf
 ctlist[1].header['ANCRFILE'] = arfout
@@ -345,11 +369,11 @@ ctlist[1].header['EXTNAME'] = 'SPECTRUM'
 ctlist[1].header['HDUCLASS'] = 'OGIP'
 ctlist[1].header['HDUCLAS1'] = 'SPECTRUM'
 ctlist[1].header['HDUVERS'] = '1.2.1'
-ctlist[1].header['DETCHANS'] = 512
+ctlist[1].header['DETCHANS'] = len(arftab)
 ctlist[1].header['HDUCLAS4'] = 'TYPE:I'
 ctlist[1].header['CORRFILE'] = 'none'
 ctlist[1].header['CORRSCAL'] = 1
-
+ctlist[1].header['POISSERR '] = True
 
 bllist[0].header['TELESCOP'] = 'SRG'
 bllist[0].header['INSTRUME'] = 'ART-XC'
@@ -361,8 +385,8 @@ bllist[1].header['INSTRUME'] = 'ART-XC'
 bllist[1].header['DETNAM'] = 'M1'
 bllist[1].header['EXPOSURE'] = expvalue
 bllist[1].header['FILTER'] = 'NONE'
-bllist[1].header['AREASCAL'] = 1
-bllist[1].header['BACKSCAL'] = 1
+bllist[1].header['AREASCAL'] = areascal_bkg
+bllist[1].header['BACKSCAL'] = backscal_bkg
 bllist[1].header['BACKFILE'] = bkgout
 bllist[1].header['RESPFILE'] = rmf
 bllist[1].header['ANCRFILE'] = arfout
@@ -371,10 +395,11 @@ bllist[1].header['EXTNAME'] = 'SPECTRUM'
 bllist[1].header['HDUCLASS'] = 'OGIP'
 bllist[1].header['HDUCLAS1'] = 'SPECTRUM'
 bllist[1].header['HDUVERS'] = '1.2.1'
-bllist[1].header['DETCHANS'] = 512
+bllist[1].header['DETCHANS'] = len(arftab)
 bllist[1].header['HDUCLAS4'] = 'TYPE:I'
 bllist[1].header['CORRFILE'] = 'none'
 bllist[1].header['CORRSCAL'] = 1
+bllist[1].header['POISSERR '] = True
 
 
 fits.HDUList(ctlist).writeto(out ,overwrite=overwrite)

@@ -50,7 +50,8 @@ For any questions/issues/bugs, please report on this github repository or send a
 ## martxc uses the following python packages:
 
 * python 2.7+ or 3.2+ (with argparse included in the standard library).
-* numpy, scipy, astropy
+* numpy, scipy
+* astropy 3.1+
 
 ## License
 The is a free, open-source software under the AGPLv3.0 license. martxc is developed and maintained by [Chien-Ting Chen](https://github.com/CTJChen) at the NASA [MSFC X-ray group](https://wwwastro.msfc.nasa.gov/).

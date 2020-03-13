@@ -29,7 +29,7 @@ parser.add_argument(
 
 parser.add_argument(
     '-gti', nargs='+', type=float, 
-    help="""TSTART and TSTOP for selecting the events. supercedes gtifits \n
+    help="""TSTART and TSTOP for selecting the events. \n
     Example: -gti TSTART TSTOP""")
 
 parser.add_argument(
@@ -37,9 +37,6 @@ parser.add_argument(
     help="""enmin and enmax for selecting the events. \n
     Example: -energy enmin enmax""")
 
-parser.add_argument(
-    '-gtifits', type=int, 
-    help="""specify the HDU number of the GTI table if it's part of the event list.""")
 
 parser.add_argument(
     '-nt', type=int, default=1, 
@@ -60,6 +57,8 @@ vprint = verboseprint(verbose)
 
 evt = args.evt
 out = args.out
+if args.gti is not None:
+    tstart, tstop = args.gti
 if args.energy is not None:
     enmin, enmax = args.energy
 overwrite = args.overwrite
@@ -68,35 +67,17 @@ ntele = str(args.nt)
 arthdu = fits.open(evt)
 evt = Table(arthdu[1].data)
 
-if args.gtifits is not None:
-    tstart = arthdu[args.gtifits].data['START']
-    tstop = arthdu[args.gtifits].data['STOP']
-if args.gti is not None:
-    tstart, tstop = args.gti
+# filter - GTI should be the following (based on RA/DEC distributions)
 
-if args.gti is None and args.gtifits is None:
+if args.gti is not None:
+    ix = np.where((evt['TIME'] <= tstop) & (evt['TIME']>= tstart))[0]
+    evt = evt[ix]
+else:
     tstop = evt['TIME'][-1]
     tstart = evt['TIME'][0]
 
-
-# filtering events outside of GTI
-
-if len(tstart) > 1:
-    i = 0
-    ix = (evt['TIME'] >= tstart[i]) & (evt['TIME'] <= tstop[i])
-    exposure = tstop[i] - tstart[i]
-    evtout = evt[ix]
-    for i in np.arange(len(tstart) - 1) + 1:
-        ix = (evt['TIME'] >= tstart[i]) & (evt['TIME'] <= tstop[i])
-        evtout = np.hstack((evtout, evt[ix]))
-        exposure += tstop[i] - tstart[i]
-    evt = evtout
-else:
-    ix = (evt['TIME'] <= tstop) & (evt['TIME']>= tstart)
-    evt = evt[ix]
-    exposure = tstop - tstart
 if args.energy is not None:
-    ix = (evt['ENERGY'] <= enmax) & (evt['ENERGY']>= enmin)
+    ix = np.where((evt['ENERGY'] <= enmax) & (evt['ENERGY']>= enmin))[0]
     evt = evt[ix]
 
 igoodevt = (evt['RAW_X'] >= 0) & (evt['RAW_X'] <= 47) & \
@@ -111,10 +92,10 @@ for i in [0,1]:
     arthdu[i].header['INSTRUME'] = 'ART-XC'
     arthdu[i].header['RADECSYS'] = 'FK5'
     arthdu[i].header['TIMESYS'] = 'TT' 
-    arthdu[i].header['MJDREFF'] = 51543.875
+    arthdu[i].header['MJDREFF'] = 0.0
     arthdu[i].header['TIMEREF'] = 'LOCAL'
     arthdu[i].header['EQUINOX'] = 2000
-    arthdu[i].header['EXPOSURE'] = exposure
-    arthdu[i].header['LIVETIME'] = exposure
+    arthdu[i].header['EXPOSURE'] = tstop - tstart
+    arthdu[i].header['LIVETIME'] = tstop - tstart
 arthdu[1].data = fits.table_to_hdu(evt).data
 arthdu.writeto(out, overwrite=overwrite)
